@@ -1,0 +1,11 @@
+
+
+java:S6809C"UCall transactional methods via an injected dependency instead of directly via 'this'.(®È”„ûÿÿÿÿ8»±ë¦3J$7452d9be-084c-4825-9f0f-f3d888b4a89e
+–
+java:S1602`"SRemove useless curly braces around statement and then remove useless return keyword(¹Ä÷8È±ë¦3J$ee1cee3e-5d50-4406-8f62-94953eebbb7e
+
+java:S6809a"UCall transactional methods via an injected dependency instead of directly via 'this'.(ßúÿÿÿÿ8É±ë¦3J$c9a358f8-b5f0-4931-9edd-5fd7ec51d188
+¢
+java:S2142"^Either re-interrupt this method or rethrow the "InterruptedException" that can be caught here.(”ı¾8Ì±ë¦3J$0fba02b1-b5d3-41ff-bdcd-47e426451712
+
+java:S5843£"TSimplify this regular expression to reduce its complexity from 23 to the 20 allowed.(èŒ×³üÿÿÿÿ8Õ±ë¦3J$ac421ad3-d5e1-4ce7-a2ea-2af35f1ca372

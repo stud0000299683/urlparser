@@ -1,0 +1,40 @@
+
+
+java:S1192J"HDefine a constant instead of duplicating this literal "message" 5 times.(£¢øİüÿÿÿÿ8Üà¨3J$3e9bdeff-ad88-4397-9f4a-6a4e7699b56a
+
+java:S1192A"FDefine a constant instead of duplicating this literal "error" 7 times.(û©¬ğşÿÿÿÿ8Üà¨3J$d5783567-7a76-4ad9-bc1b-aa7a738a8a49
+„
+java:S17101"<Remove the 'ApiResponses' wrapper from this annotation group(Å¬†—üÿÿÿÿ8ÍÄª¦3J$f63f7b36-62f8-4a8f-9830-658b8da8a612
+„
+java:S1710X"<Remove the 'ApiResponses' wrapper from this annotation group(Å¬†—üÿÿÿÿ8ÍÄª¦3J$e05cefaa-6e1b-4d96-889e-5ed4ec1dfa21
+…
+java:S1710…"<Remove the 'ApiResponses' wrapper from this annotation group(Å¬†—üÿÿÿÿ8ÍÄª¦3J$95a3c6f3-1b6e-47a5-977e-4bcbfd6e5dd3
+…
+java:S1710¢"<Remove the 'ApiResponses' wrapper from this annotation group(Å¬†—üÿÿÿÿ8ÍÄª¦3J$89ef86aa-671a-4598-b13c-2e140b500456
+…
+java:S1710»"<Remove the 'ApiResponses' wrapper from this annotation group(Å¬†—üÿÿÿÿ8ÍÄª¦3J$6835fdac-3443-455f-8ad1-5ca49fdb208c
+…
+java:S1710Ô"<Remove the 'ApiResponses' wrapper from this annotation group(Å¬†—üÿÿÿÿ8ÍÄª¦3J$ab4b7e87-591f-4492-ab0d-97ebd401254c
+…
+java:S1710ä"<Remove the 'ApiResponses' wrapper from this annotation group(Å¬†—üÿÿÿÿ8ÍÄª¦3J$c4bc02ce-32fd-44af-bf9b-94c8a54bab18
+…
+java:S1710œ"<Remove the 'ApiResponses' wrapper from this annotation group(Å¬†—üÿÿÿÿ8ßà¨3J$d83ffdfb-be08-4e31-b449-c338a300f603
+i
+java:S1452<"&Remove usage of generic wildcard type.(€×§8ÜÄª¦3J$209c8232-65f1-493a-a882-10b2c47a446d
+n
+java:S1452c"&Remove usage of generic wildcard type.(ÂâÖâüÿÿÿÿ8ŞÄª¦3J$a090c2d9-7495-4bd8-9e8a-6f8cd02bcdc3
+j
+java:S1452Œ"&Remove usage of generic wildcard type.(¿‹™Â8âÄª¦3J$cf35e347-cab9-4e98-a610-9a77cdb97ae5
+~
+java:S1854«":Remove this useless assignment to local variable "future".(Îæ¢8ŞÄª¦3J$9d99ab05-5889-4642-ac64-8ead29952e40
+o
+java:S1452©"&Remove usage of generic wildcard type.(ìù®Íøÿÿÿÿ8åÄª¦3J$f2feeec6-3e6b-4c93-b6aa-a9aa0a77a383
+o
+java:S1481«"+Remove this unused "future" local variable.(Îæ¢8ßÄª¦3J$c28de529-ac6a-4d72-9b45-2f182cdfab27
+j
+java:S1452ï"&Remove usage of generic wildcard type.(š‚™ÿ8æÄª¦3J$ca754535-cd1c-46f6-bb36-456fcfbdeb84
+j
+java:S1452§"&Remove usage of generic wildcard type.(Ì¬¸„8…à¨3J$17b511e2-62f6-45b7-b3d5-3cf610544372
+y
+java:S1874¹"0Remove this use of "required"; it is deprecated.(ˆµô•şÿÿÿÿ8êÄª¦3J$a99ff056-4a42-4ed5-8835-57347382d72b
+Y	java:S125Ã"<This block of commented-out lines of code should be removed.(òËºï8†ğêÀ3
