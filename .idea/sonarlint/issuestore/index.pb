@@ -25,3 +25,16 @@ o
 ?src/main/java/com/utmn/chamortsev/urlparser/dto/UrlRequest.java,a\a\aa55a06ce858b8db839de884b17e3134a14afc7e
 u
 Esrc/main/java/com/utmn/chamortsev/urlparser/dto/UrlUpdateRequest.java,a\0\a007a4a3d92a8754d8416fbe89bc0a8efeba1706
+z
+Jsrc/main/java/com/utmn/chamortsev/urlparser/service/UrlProcessingTask.java,b\d\bd5b0da1536b9949614910207a9714d182a0e245
+C
+docker-compose.yaml,e\f\ef8def03dc8f162799089e9b5f4321201c8810d5
+>
+prometheus.yml,5\e\5eb76210fd3494d08671609c43f16e804d4cb2cd
+7
+HELP.md,1\a\1a273f73b7a477b0745593641bd708a6182c7ad5
+{
+Ksrc/main/java/com/utmn/chamortsev/urlparser/config/MemoryLeakSimulator.java,4\2\426e3ed1c31ed698ea991d77d688556a647359bf
+:
+
+dockerfile,5\5\558c49b604560afd1841f2a7b49e2f60bd1f99b3

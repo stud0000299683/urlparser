@@ -1,0 +1,21 @@
+
+t
+java:S1192["RDefine a constant instead of duplicating this literal "totalResponseTime" 5 times.(ÓÃÙ§şÿÿÿÿ8å·üÔ¯3
+j
+java:S1192L"HDefine a constant instead of duplicating this literal "results" 4 times.(è…„ÿÿÿÿÿ8é·üÔ¯3
+j
+java:S1192r"MDefine a constant instead of duplicating this literal "totalBatches" 3 times.(ÎÙ€¹8á·üÔ¯3
+i
+java:S1192e"LDefine a constant instead of duplicating this literal "phonesFound" 5 times.(˜¢‹„8ã·üÔ¯3
+i
+java:S1192T"MDefine a constant instead of duplicating this literal "successCount" 5 times.(™¤Ü?8å·üÔ¯3
+n
+java:S1192a"LDefine a constant instead of duplicating this literal "emailsFound" 5 times.(‹”Äéşÿÿÿÿ8è·üÔ¯3
+l
+java:S1192i"ODefine a constant instead of duplicating this literal "addressesFound" 5 times.(ú‰¼œ8ã·üÔ¯3
+l
+java:S1192K"ODefine a constant instead of duplicating this literal "processedCount" 4 times.(”Ê‡¦8ä·üÔ¯3
+H
+java:S1948"&Make "urls" transient or serializable.(ˆ²ººÿÿÿÿÿ8Ÿ¹üÔ¯3
+F
+java:S1948")Make "service" transient or serializable.(¢ªß¼8Ÿ¹üÔ¯3

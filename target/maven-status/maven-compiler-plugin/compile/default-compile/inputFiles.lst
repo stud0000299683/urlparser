@@ -1,0 +1,15 @@
+C:\Projects\Java\urlparser\src\main\java\com\utmn\chamortsev\urlparser\config\DataInitializer.java
+C:\Projects\Java\urlparser\src\main\java\com\utmn\chamortsev\urlparser\config\MemoryLeakSimulator.java
+C:\Projects\Java\urlparser\src\main\java\com\utmn\chamortsev\urlparser\config\SwaggerConfig.java
+C:\Projects\Java\urlparser\src\main\java\com\utmn\chamortsev\urlparser\controller\AsyncUrlController.java
+C:\Projects\Java\urlparser\src\main\java\com\utmn\chamortsev\urlparser\controller\UrlController.java
+C:\Projects\Java\urlparser\src\main\java\com\utmn\chamortsev\urlparser\dto\AsyncProcessingResult.java
+C:\Projects\Java\urlparser\src\main\java\com\utmn\chamortsev\urlparser\dto\UrlRequest.java
+C:\Projects\Java\urlparser\src\main\java\com\utmn\chamortsev\urlparser\dto\UrlUpdateRequest.java
+C:\Projects\Java\urlparser\src\main\java\com\utmn\chamortsev\urlparser\entity\UrlEntity.java
+C:\Projects\Java\urlparser\src\main\java\com\utmn\chamortsev\urlparser\entity\UrlResultEntity.java
+C:\Projects\Java\urlparser\src\main\java\com\utmn\chamortsev\urlparser\repository\UrlRepository.java
+C:\Projects\Java\urlparser\src\main\java\com\utmn\chamortsev\urlparser\repository\UrlResultRepository.java
+C:\Projects\Java\urlparser\src\main\java\com\utmn\chamortsev\urlparser\service\UrlProcessingService.java
+C:\Projects\Java\urlparser\src\main\java\com\utmn\chamortsev\urlparser\service\UrlProcessingTask.java
+C:\Projects\Java\urlparser\src\main\java\com\utmn\chamortsev\urlparser\UrlParserApplication.java
