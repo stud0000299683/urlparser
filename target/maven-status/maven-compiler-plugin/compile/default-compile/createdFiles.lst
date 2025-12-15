@@ -8,6 +8,7 @@ com\utmn\chamortsev\urlparser\config\DataInitializer.class
 com\utmn\chamortsev\urlparser\entity\UrlEntity.class
 com\utmn\chamortsev\urlparser\controller\AsyncUrlController.class
 com\utmn\chamortsev\urlparser\controller\UrlController.class
+com\utmn\chamortsev\urlparser\config\WebSocketConfig.class
 com\utmn\chamortsev\urlparser\config\MemoryLeakSimulator.class
 com\utmn\chamortsev\urlparser\config\SwaggerConfig.class
 com\utmn\chamortsev\urlparser\entity\UrlResultEntity.class

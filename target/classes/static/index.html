@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>URL Parser</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/build/stomp.min.js"></script>
+    <style>
+        body { font-family: Arial; max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .tab { display: none; } .tab.active { display: block; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:disabled { background: #ccc; }
+        input, textarea { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        .result { background: #f8f9fa; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid #007bff; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .status.pending { background: #fff3cd; border: 1px solid #ffeaa7; }
+        .status.completed { background: #d4edda; border: 1px solid #c3e6cb; }
+        pre { background: #f8f9fa; padding: 15px; overflow: auto; border-radius: 5px; }
+    </style>
+</head>
+<body>
+<h1>URL Parser Dashboard</h1>
+
+<div>
+    <button onclick="switchTab('add')">Добавить URL</button>
+    <button onclick="switchTab('parse')">Запустить парсинг</button>
+    <button onclick="switchTab('results')">Результаты</button>
+</div>
+
+<div id="add" class="tab active">
+    <h2>Добавить URL</h2>
+    <input id="url" placeholder="https://example.com" />
+    <input id="name" placeholder="Название сайта" />
+    <textarea id="desc" placeholder="Описание"></textarea>
+    <button onclick="addUrl()">Добавить</button>
+    <button onclick="addBatchUrls()">Добавить пакет</button>
+</div>
+
+<div id="parse" class="tab">
+    <h2>Запуск парсинга</h2>
+    <button id="startProcess" onclick="startProcessing('process')">ThreadPoolExecutor</button>
+    <button id="startForkJoin" onclick="startProcessing('forkjoin')">ForkJoinPool</button>
+    <div id="status"></div>
+    <div id="method">REST Polling <input type="radio" name="method" value="polling" checked onchange="selectMethod()"> |
+        WebSocket <input type="radio" name="method" value="websocket" onchange="selectMethod()"></div>
+</div>
+
+<div id="results" class="tab">
+    <h2>Результаты</h2>
+    <div id="resultsList"></div>
+</div>
+
+<script>
+    let currentUrlId = null;
+    let pollInterval = null;
+    let stompClient = null;
+    const BASE_URL = 'http://localhost:8080';
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('button').forEach(b => b.style.background = '#007bff');
+        document.getElementById(tabId).classList.add('active');
+    }
+
+    async function apiCall(path, method = 'GET', body = null) {
+        const options = { method, headers: { 'Content-Type': 'application/json' } };
+        if (body) options.body = JSON.stringify(body);
+        const res = await fetch(`${BASE_URL}${path}`, options);
+        return res.json();
+    }
+
+    async function addUrl() {
+        const url = document.getElementById('url').value;
+        const name = document.getElementById('name').value;
+        const desc = document.getElementById('desc').value;
+        const result = await apiCall('/api/urls', 'POST', { url, name, desc });
+        alert('URL добавлен: ' + result.url.id);
+        currentUrlId = result.url.id;
+        loadUrls();
+    }
+
+    async function addBatchUrls() {
+        const urls = [
+            { url: 'https://example.com', name: 'Example', description: 'Test' },
+            { url: 'https://httpbin.org/html', name: 'Test HTML', description: 'HTML test' }
+        ];
+        await apiCall('/api/urls/batch', 'POST', urls);
+        alert('Пакет добавлен');
+        loadUrls();
+    }
+
+    async function startProcessing(type) {
+    document.getElementById('startProcess').disabled = true;
+    document.getElementById('startForkJoin').disabled = true;
+
+    const endpoint = type === 'forkjoin' ? '/api/async/process/forkjoin' : '/api/async/process';
+    const result = await apiCall(endpoint, 'POST');
+    console.log('process result', result);
+
+    currentUrlId = result.results?.[0]?.urlId || currentUrlId;
+    console.log('currentUrlId after process', currentUrlId);
+
+    updateStatus('PROCESSING');
+
+    const method = document.querySelector('input[name="method"]:checked').value;
+    if (method === 'polling') {
+        startPolling();
+    } else {
+        connectWebSocket();
+    }
+}
+
+
+    function selectMethod() {
+        if (pollInterval) clearInterval(pollInterval);
+        if (stompClient) stompClient.deactivate();
+        if (currentUrlId) {
+            const method = document.querySelector('input[name="method"]:checked').value;
+            if (method === 'polling') startPolling();
+            else connectWebSocket();
+        }
+    }
+
+    function startPolling() {
+        updateStatus('POLLING...');
+        pollInterval = setInterval(async () => {
+            if (!currentUrlId) return;
+            const status = await apiCall(`/api/urls/status/${currentUrlId}`);
+            updateStatus(status.status);
+            if (status.status === 'COMPLETED') {
+                clearInterval(pollInterval);
+                loadResult(currentUrlId);
+            }
+        }, 500);
+    }
+
+    function connectWebSocket() {
+    updateStatus('WebSocket...');
+    const socket = new SockJS(`${BASE_URL}/ws`);
+    stompClient = Stomp.over(socket);
+    stompClient.connect({}, frame => {
+        console.log('WS connected', frame, 'currentUrlId=', currentUrlId);
+        stompClient.subscribe(`/topic/url/${currentUrlId}`, message => {
+            console.log('WS message', message);
+            const result = JSON.parse(message.body);
+            updateStatus('COMPLETED');
+            showResult(result);
+            stompClient.deactivate();
+        });
+    }, error => {
+        console.error('WS error', error);
+    });
+    }
+
+
+    function updateStatus(status) {
+        const el = document.getElementById('status');
+        el.innerHTML = `<div class="status ${status.toLowerCase()}">${status}</div>`;
+    }
+
+    async function loadUrls() {
+        const urls = await apiCall('/api/urls/active');
+        const resultsEl = document.getElementById('resultsList');
+        resultsEl.innerHTML = urls.map(u =>
+            `<div class="result">
+                <strong>${u.name}</strong> (${u.url})
+                <button onclick="loadResult(${u.id})">Результат</button>
+                <button onclick="currentUrlId=${u.id};selectMethod()">Мониторинг</button>
+            </div>`
+        ).join('');
+    }
+
+    async function loadResult(urlId) {
+        currentUrlId = urlId;
+        const results = await apiCall(`/api/urls/${urlId}/results`);
+        showResult(results[0]);
+    }
+
+    function showResult(result) {
+        document.getElementById('status').innerHTML +=
+            `<div class="result"><pre>${JSON.stringify(result, null, 2)}</pre></div>`;
+    }
+
+    // Инициализация
+    loadUrls();
+</script>
+</body>
+</html>

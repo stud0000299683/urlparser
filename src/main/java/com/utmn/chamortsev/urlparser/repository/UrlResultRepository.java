@@ -6,11 +6,16 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface UrlResultRepository extends JpaRepository<UrlResultEntity, Long> {
     List<UrlResultEntity> findByUrlEntityIdOrderByProcessedAtDesc(Long urlId);
     List<UrlResultEntity> findAllByOrderByProcessedAtDesc();
+
+
+    @Query("SELECT r FROM UrlResultEntity r WHERE r.urlEntity.id = :urlId ORDER BY r.processedAt DESC")
+    Optional<UrlResultEntity> findTopByUrlEntityIdOrderByProcessedAtDesc(@Param("urlId") Long urlId);
 
     @Query("SELECT ur FROM UrlResultEntity ur JOIN ur.urlEntity u WHERE u.active = true ORDER BY ur.processedAt DESC")
     List<UrlResultEntity> findActiveUrlResults();

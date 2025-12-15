@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -18,15 +19,18 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/async")
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = "*")
 @Tag(name = "Async URL Processing API", description = "Асинхронные операции обработки URL")
 public class AsyncUrlController {
 
     private final UrlProcessingService urlProcessingService;
+    private final SimpMessagingTemplate messagingTemplate;  // ✅ WebSocket
     private static final Logger logger = LoggerFactory.getLogger(AsyncUrlController.class);
 
-    public AsyncUrlController(UrlProcessingService urlProcessingService) {
+    public AsyncUrlController(UrlProcessingService urlProcessingService,
+                              SimpMessagingTemplate messagingTemplate) {
         this.urlProcessingService = urlProcessingService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @Operation(
@@ -58,6 +62,14 @@ public class AsyncUrlController {
                     response.put("successRate", results.isEmpty() ? "0%" :
                             String.format("%.1f%%", successCount * 100.0 / results.size()));
 
+                    // отправка по WebSocket
+                    for (Map<String, Object> result : results) {
+                        Long urlId = (Long) result.get("urlId");
+                        if (urlId != null) {
+                            messagingTemplate.convertAndSend("/topic/url/" + urlId, result);
+                        }
+                    }
+
                     logger.info("Асинхронная обработка завершена, обработано {} URL, успешно: {}",
                             results.size(), successCount);
 
@@ -69,6 +81,7 @@ public class AsyncUrlController {
                             .body(Map.of("error", "Ошибка асинхронной обработки: " + ex.getMessage()));
                 });
     }
+
 
     @Operation(
             summary = "Получить расширенные результаты",
@@ -134,6 +147,96 @@ public class AsyncUrlController {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body(Map.of("error", "Ошибка получения статуса: " + e.getMessage()));
             }
+        });
+    }
+
+    @Operation(
+            summary = "ForkJoin обработка URL",
+            description = "Рекурсивная обработка URL с разбиением на батчи через ForkJoin"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "202",
+                    description = "ForkJoin обработка запущена"
+            )
+    })
+    @PostMapping("/process/forkjoin")
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> processUrlsWithForkJoin() {
+        logger.info("Запуск ForkJoin обработки URL");
+
+        return urlProcessingService.processUrlsWithForkJoin()
+                .thenApply(result -> {
+                    Map<String, Object> response = new HashMap<>(result);
+                    response.put("message", "ForkJoin обработка завершена");
+                    response.put("timestamp", new Date());
+
+                    // ✅ WebSocket уведомления для каждого URL
+                    if (result.containsKey("results")) {
+                        List<Map<String, Object>> results = (List<Map<String, Object>>) result.get("results");
+                        for (Map<String, Object> singleResult : results) {
+                            Long urlId = (Long) singleResult.get("urlId");
+                            if (urlId != null) {
+                                messagingTemplate.convertAndSend("/topic/url/" + urlId, singleResult);
+                            }
+                        }
+                    } else {
+                        // Если результат содержит urlId напрямую (одиночный URL)
+                        Long urlId = (Long) result.get("urlId");
+                        if (urlId != null) {
+                            messagingTemplate.convertAndSend("/topic/url/" + urlId, result);
+                        }
+                    }
+
+                    // Добавляем детальную статистику
+                    Map<String, Object> aggregatedStats = (Map<String, Object>) result.get("aggregatedStats");
+                    if (aggregatedStats != null) {
+                        response.put("detailedStats", aggregatedStats);
+                    }
+
+                    logger.info("ForkJoin обработка завершена. Обработано {} URL",
+                            result.get("processedCount"));
+
+                    return ResponseEntity.ok(response);
+                })
+                .exceptionally(ex -> {
+                    logger.error("Ошибка ForkJoin обработки", ex);
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body(Map.of("error", "Ошибка ForkJoin обработки: " + ex.getMessage()));
+                });
+    }
+
+    @Operation(
+            summary = "Сравнение методов обработки",
+            description = "Сравнивает производительность разных методов обработки"
+    )
+    @GetMapping("/compare-methods")
+    public CompletableFuture<ResponseEntity<?>> compareProcessingMethods() {
+        logger.info("Запуск сравнения методов обработки");
+
+        CompletableFuture<Map<String, Object>> asyncFuture = urlProcessingService.processAllUrlsAsync()
+                .thenApply(results -> Map.of(
+                        "method", "COMPLETABLE_FUTURE",
+                        "processedCount", results.size(),
+                        "timestamp", new Date()
+                ));
+
+        CompletableFuture<Map<String, Object>> forkJoinFuture = urlProcessingService.processUrlsWithForkJoin()
+                .thenApply(result -> Map.of(
+                        "method", "FORK_JOIN",
+                        "processedCount", result.get("processedCount"),
+                        "aggregatedStats", result.get("aggregatedStats"),
+                        "timestamp", new Date()
+                ));
+
+        return asyncFuture.thenCombine(forkJoinFuture, (asyncResult, forkJoinResult) -> {
+            Map<String, Object> comparison = new HashMap<>();
+            comparison.put("asyncMethod", asyncResult);
+            comparison.put("forkJoinMethod", forkJoinResult);
+            comparison.put("comparisonTimestamp", new Date());
+
+            logger.info("Сравнение методов обработки завершено");
+
+            return ResponseEntity.ok(comparison);
         });
     }
 
@@ -216,78 +319,5 @@ public class AsyncUrlController {
         summary.put("performanceDistribution", performanceDistribution);
 
         return summary;
-    }
-
-    @Operation(
-            summary = "ForkJoin обработка URL",
-            description = "Рекурсивная обработка URL с разбиением на батчи через ForkJoin"
-    )
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "202",
-                    description = "ForkJoin обработка запущена"
-            )
-    })
-    @PostMapping("/process/forkjoin")
-    public CompletableFuture<ResponseEntity<Map<String, Object>>> processUrlsWithForkJoin() {
-        logger.info("Запуск ForkJoin обработки URL");
-
-        return urlProcessingService.processUrlsWithForkJoin()
-                .thenApply(result -> {
-                    Map<String, Object> response = new HashMap<>(result);
-                    response.put("message", "ForkJoin обработка завершена");
-                    response.put("timestamp", new Date());
-
-                    // Добавляем детальную статистику
-                    Map<String, Object> aggregatedStats = (Map<String, Object>) result.get("aggregatedStats");
-                    if (aggregatedStats != null) {
-                        response.put("detailedStats", aggregatedStats);
-                    }
-
-                    logger.info("ForkJoin обработка завершена. Обработано {} URL",
-                            result.get("processedCount"));
-
-                    return ResponseEntity.ok(response);
-                })
-                .exceptionally(ex -> {
-                    logger.error("Ошибка ForkJoin обработки", ex);
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                            .body(Map.of("error", "Ошибка ForkJoin обработки: " + ex.getMessage()));
-                });
-    }
-
-    @Operation(
-            summary = "Сравнение методов обработки",
-            description = "Сравнивает производительность разных методов обработки"
-    )
-    @GetMapping("/compare-methods")
-    public CompletableFuture<ResponseEntity<?>> compareProcessingMethods() {
-        logger.info("Запуск сравнения методов обработки");
-
-        CompletableFuture<Map<String, Object>> asyncFuture = urlProcessingService.processAllUrlsAsync()
-                .thenApply(results -> Map.of(
-                        "method", "COMPLETABLE_FUTURE",
-                        "processedCount", results.size(),
-                        "timestamp", new Date()
-                ));
-
-        CompletableFuture<Map<String, Object>> forkJoinFuture = urlProcessingService.processUrlsWithForkJoin()
-                .thenApply(result -> Map.of(
-                        "method", "FORK_JOIN",
-                        "processedCount", result.get("processedCount"),
-                        "aggregatedStats", result.get("aggregatedStats"),
-                        "timestamp", new Date()
-                ));
-
-        return asyncFuture.thenCombine(forkJoinFuture, (asyncResult, forkJoinResult) -> {
-            Map<String, Object> comparison = new HashMap<>();
-            comparison.put("asyncMethod", asyncResult);
-            comparison.put("forkJoinMethod", forkJoinResult);
-            comparison.put("comparisonTimestamp", new Date());
-
-            logger.info("Сравнение методов обработки завершено");
-
-            return ResponseEntity.ok(comparison);
-        });
     }
 }

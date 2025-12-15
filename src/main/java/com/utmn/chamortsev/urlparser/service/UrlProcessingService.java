@@ -7,6 +7,8 @@ import com.utmn.chamortsev.urlparser.repository.UrlResultRepository;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -650,4 +652,12 @@ public class UrlProcessingService {
     public ForkJoinPool getForkJoinPool() {
         return forkJoinPool;
     }
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
+    public void notifyResult(Long urlId, Map<String, Object> result) {
+        messagingTemplate.convertAndSend("/topic/url/" + urlId, result);
+    }
 }
+

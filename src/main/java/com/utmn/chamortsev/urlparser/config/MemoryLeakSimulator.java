@@ -5,12 +5,12 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
-@Component
+//@Component
 public class MemoryLeakSimulator {
 
     private static final List<byte[]> leakStorage = new ArrayList<>();
 
-    @PostConstruct
+    //@PostConstruct
     public void simulateLeak() {
         new Thread(() -> {
             System.out.println("=== Memory leak simulation started ===");

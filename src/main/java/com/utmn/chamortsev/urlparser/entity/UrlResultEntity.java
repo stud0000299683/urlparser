@@ -34,6 +34,7 @@ public class UrlResultEntity {
     @Schema(description = "Extracted address information", example = "ул. Примерная, 123")
     private String address;
 
+    @Column(length = 1000)
     @Schema(description = "Extracted phone numbers", example = "+7 (123) 456-78-90")
     private String phone;
 

@@ -38,3 +38,7 @@ Ksrc/main/java/com/utmn/chamortsev/urlparser/config/MemoryLeakSimulator.java,4\
 :
 
 dockerfile,5\5\558c49b604560afd1841f2a7b49e2f60bd1f99b3
+w
+Gsrc/main/java/com/utmn/chamortsev/urlparser/config/WebSocketConfig.java,8\0\807b73be4f843f94881753801b9bd89da8819ba5
+~
+Nsrc/main/java/com/utmn/chamortsev/urlparser/controller/AsyncUrlController.java,b\d\bda453cd158480ac035dee1d6393b81e68dc2696

@@ -1,6 +1,5 @@
 package com.utmn.chamortsev.urlparser.controller;
 
-
 import com.utmn.chamortsev.urlparser.dto.UrlUpdateRequest;
 import com.utmn.chamortsev.urlparser.entity.UrlEntity;
 import com.utmn.chamortsev.urlparser.entity.UrlResultEntity;
@@ -19,7 +18,10 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.Serializable;
 import java.util.*;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -126,6 +128,7 @@ public class UrlController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
+
     @Operation(
             summary = "Добавление нескольких сайтов (URL)",
             description = "Позволяет добавить несколько сайтов"
@@ -162,7 +165,7 @@ public class UrlController {
     @ApiResponses({
             @ApiResponse(
                     responseCode = "202",
-                    description = "Проесс успешно стартовал"
+                    description = "Процесс успешно стартовал"
             )
     })
     @PostMapping("/process")
@@ -181,7 +184,7 @@ public class UrlController {
     }
 
     @Operation(
-            summary = "Получить все URL записи из базы ",
+            summary = "Получить все URL записи из базы",
             description = "Выводит все что есть в базе"
     )
     @ApiResponses({
@@ -258,7 +261,7 @@ public class UrlController {
 
     @Operation(
             summary = "Возвращает информацию по потокам",
-            description = "Возвращает  информацию о пуле потоков обработки"
+            description = "Возвращает информацию о пуле потоков обработки"
     )
     @GetMapping("/thread-pool-info")
     public Map<String, Object> getThreadPoolInfo() {
@@ -277,6 +280,7 @@ public class UrlController {
 
         return info;
     }
+
     @Operation(
             summary = "Удалить URL",
             description = "Удаляет URL из базы"
@@ -306,6 +310,28 @@ public class UrlController {
         }
     }
 
+    // ✅ НОВЫЙ ЭНДПОИНТ ДЛЯ REST POLLING
+    @Operation(
+            summary = "Статус обработки конкретного URL",
+            description = "Для REST polling - проверяет готовность результата"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Статус получен")
+    })
+    @GetMapping("/status/{urlId}")
+    public ResponseEntity<Map<String, ? extends Serializable>> getUrlStatus(
+            @Parameter(description = "ID URL", example = "1")
+            @PathVariable Long urlId) {
+        Optional<UrlResultEntity> latest = urlResultRepository
+                .findTopByUrlEntityIdOrderByProcessedAtDesc(urlId);
+        Map<String, ? extends Serializable> status = latest.map(result -> Map.of(
+                "status", result.getStatusCode() != null ? "COMPLETED" : "PENDING",
+                "urlId", urlId,
+                "lastProcessed", result.getProcessedAt()
+        )).orElse(Map.of("status", "PENDING", "urlId", urlId));
+        return ResponseEntity.ok(status);
+    }
+
     @Getter
     @Setter
     @Schema(description = "URL request model")
@@ -318,15 +344,5 @@ public class UrlController {
 
         @Schema(description = "Описание", example = "Просто краткое описание сайта")
         private String description;
-
-//        // Getters and Setters
-//        public String getUrl() { return url; }
-//        public void setUrl(String url) { this.url = url; }
-//
-//        public String getName() { return name; }
-//        public void setName(String name) { this.name = name; }
-//
-//        public String getDescription() { return description; }
-//        public void setDescription(String description) { this.description = description; }
     }
 }

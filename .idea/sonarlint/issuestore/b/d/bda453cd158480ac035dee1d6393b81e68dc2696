@@ -1,0 +1,37 @@
+
+Š
+java:S1192?"GDefine a constant instead of duplicating this literal "%.1f%%" 3 times.(¿ıò®8ëõ½™²3J$5b2cd422-1c13-4fe6-aa70-e55ca1bec930
+
+java:S11927"HDefine a constant instead of duplicating this literal "results" 4 times.(ü¡Û¢ùÿÿÿÿ8ìõ½™²3J$df235b14-81ae-4f60-a303-b390e007dcbb
+™
+java:S1192¿"PDefine a constant instead of duplicating this literal "aggregatedStats" 3 times.(¸Øòùÿÿÿÿ8Âº¥˜²3J$394498c3-d74c-49f7-a9b8-d8e9acd117a0
+
+java:S1192•"FDefine a constant instead of duplicating this literal "phone" 4 times.(º¡Õôşÿÿÿÿ8Âº¥˜²3J$43825d27-829f-4b44-b329-49681a2788d3
+‹
+java:S1192;"HDefine a constant instead of duplicating this literal "success" 3 times.(‰öÉò8ìõ½™²3J$440fb061-a7b9-4ccb-bdec-57e1140ce6e7
+”
+java:S1192ş"PDefine a constant instead of duplicating this literal "performanceNote" 3 times.(ÇİË8Âº¥˜²3J$8239c816-e298-471c-96ad-8e9574db11fa
+
+java:S1192Q"FDefine a constant instead of duplicating this literal "error" 4 times.(ÊüÑìúÿÿÿÿ8ìõ½™²3J$a4932d17-f8c1-4444-bf22-11ff360d9d60
+
+java:S1192C"FDefine a constant instead of duplicating this literal "urlId" 3 times.(£ãïœøÿÿÿÿ8ìõ½™²3J$ed3d1b91-3657-4432-afc8-79010d6562b8
+
+java:S1192”"FDefine a constant instead of duplicating this literal "email" 4 times.(›Ú”€ÿÿÿÿÿ8Âº¥˜²3J$910dc311-8819-43a4-8084-12486c44def4
+’
+java:S11928"JDefine a constant instead of duplicating this literal "timestamp" 6 times.(Ø¥¼¯üÿÿÿÿ8ìõ½™²3J$9ec7299b-6b6a-43b8-ad66-f1381050d88e
+”
+java:S1192E"LDefine a constant instead of duplicating this literal "/topic/url/" 3 times.(Ï—Åüÿÿÿÿ8ìõ½™²3J$e94f0d94-b106-497d-badc-2de9f52b337f
+’
+java:S11926"ODefine a constant instead of duplicating this literal "processedCount" 5 times.(Èıóæ8ìõ½™²3J$2740fce4-3047-4708-b0be-fe2847eae07b
+„
+java:S1710("<Remove the 'ApiResponses' wrapper from this annotation group(Å¬†—üÿÿÿÿ8Çº¥˜²3J$e8943f93-6ee5-486a-a38d-02ea2bfad8d1
+…
+java:S1710"<Remove the 'ApiResponses' wrapper from this annotation group(Å¬†—üÿÿÿÿ8Çº¥˜²3J$be409f21-6323-46e6-9154-db0d04254cfb
+½
+java:S6204b"zReplace this usage of 'Stream.collect(Collectors.toList())' with 'Stream.toList()' and ensure that the list is unmodified.(ª™¨¹8êº¥˜²3J$ab13c304-5a35-40b0-bab4-965ce0145ad0
+n
+java:S1452{"&Remove usage of generic wildcard type.(êµšƒşÿÿÿÿ8íº¥˜²3J$76661d7f-4515-4277-933e-426e8e1ede54
+j
+java:S1452Õ"&Remove usage of generic wildcard type.(’‹°ª8ñº¥˜²3J$0a404e02-44d4-4a87-81a7-909fcefe0d2d
+
+java:S3358"DExtract this nested ternary operation into an independent statement.(¶Ÿ‡Œùÿÿÿÿ8õº¥˜²3J$b1aba979-b7d4-43a7-9580-9f9f455a07a0
