@@ -118,10 +118,9 @@ public class UrlController {
             }
 
             UrlEntity updatedUrl = urlRepository.save(url);
-            return ResponseEntity.ok(Map.of(
-                    "message", "URL обновлен успешно",
-                    "url", updatedUrl
-            ));
+            //return ResponseEntity.ok(Map.of("message", "URL обновлен успешно","url", updatedUrl));
+            return ResponseEntity.ok(Map.of("message", "URL updated", "url",
+                    urlProcessingService.updateUrlEntity(updatedUrl)));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
@@ -196,7 +195,8 @@ public class UrlController {
     })
     @GetMapping
     public List<UrlEntity> getAllUrls() {
-        return urlRepository.findAllByOrderByCreatedAtDesc();
+        //return urlRepository.findAllByOrderByCreatedAtDesc();
+        return urlProcessingService.getAllUrls(); //Кэш
     }
 
     @Operation(
@@ -206,6 +206,15 @@ public class UrlController {
     @GetMapping("/active")
     public List<UrlEntity> getActiveUrls() {
         return urlRepository.findByActiveTrueOrderByCreatedAtDesc();
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Get URL by ID (CACHED)", description = "Get URL by ID")
+    public ResponseEntity<UrlEntity> getUrlById(
+            @Parameter(description = "URL ID", example = "1")
+            @PathVariable Long id) {
+        UrlEntity url = urlProcessingService.getUrlById(id);  // ← КЭШ!
+        return ResponseEntity.ok(url);
     }
 
     @Operation(
@@ -310,7 +319,7 @@ public class UrlController {
         }
     }
 
-    // ✅ НОВЫЙ ЭНДПОИНТ ДЛЯ REST POLLING
+    // НОВЫЙ ЭНДПОИНТ ДЛЯ REST POLLING
     @Operation(
             summary = "Статус обработки конкретного URL",
             description = "Для REST polling - проверяет готовность результата"

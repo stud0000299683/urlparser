@@ -1,0 +1,7 @@
+
+•
+java:S2095."MUse try-with-resources or close this "ExecutorService" in a "finally" clause.(Š¢ºüÿÿÿÿ8È¶Ã²3J$ace4d405-5fd2-4805-8d7b-d5be40d195da
+q
+java:S2140>")Use "java.util.Random.nextInt()" instead.(ò‰ÒÂıÿÿÿÿ8ÊŠ¼²3J$7db1b21a-e497-4f94-8f82-21da85ff3180
+u
+java:S1481@"-Remove this unused "response" local variable.(¿€—æşÿÿÿÿ8ŞÁ²3J$ab7f882f-6cb6-4da7-8a0f-e6488999b163

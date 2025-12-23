@@ -42,3 +42,13 @@ w
 Gsrc/main/java/com/utmn/chamortsev/urlparser/config/WebSocketConfig.java,8\0\807b73be4f843f94881753801b9bd89da8819ba5
 ~
 Nsrc/main/java/com/utmn/chamortsev/urlparser/controller/AsyncUrlController.java,b\d\bda453cd158480ac035dee1d6393b81e68dc2696
+{
+Ksrc/main/java/com/utmn/chamortsev/urlparser/loadtest/LoadTestGenerator.java,4\0\40a5b1ab9199591f4f29b788c505dcb88aa3bf5a
+t
+Dsrc/main/java/com/utmn/chamortsev/urlparser/dto/LoadTestRequest.java,2\c\2cc05602eae879a1ce78d847003602ada06a5e05
+x
+Hsrc/main/java/com/utmn/chamortsev/urlparser/service/LoadTestService.java,9\8\98406e55ed11c3015ce0c08f4fcf6cfdf7de58d7
+~
+Nsrc/main/java/com/utmn/chamortsev/urlparser/controller/LoadTestController.java,a\7\a76c35c8919e8b3989f66210eb8da844270efbb4
+z
+Jsrc/main/java/com/utmn/chamortsev/urlparser/controller/TestController.java,a\0\a09be6b8297b6e21e080cbaa4925d3f8efb01365

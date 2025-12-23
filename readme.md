@@ -221,3 +221,45 @@ src/main/java/ru/utmn/chamortsev/urlparser/
 │   └── AsyncProcessingResult.java # DTO асинхронного результата
 └── UrlParserApplication.java    # Главный класс приложения
 ```
+
+# Шаг 1. Сбор метрик с помощью Micrometer и Prometheus:
+
+## 📊 Все доступные Actuator Endpoints:
+### 1. Основные health checks:
+http://localhost:8080/actuator/health - Общий health check
+
+http://localhost:8080/actuator/health/liveness - Liveness probe
+
+http://localhost:8080/actuator/health/readiness - Readiness probe
+
+http://localhost:8080/actuator/health/db - Проверка базы данных
+
+http://localhost:8080/actuator/health/diskSpace - Проверка свободного места
+
+### 2. Метрики и мониторинг:
+http://localhost:8080/actuator/metrics - Список всех доступных метрик
+
+http://localhost:8080/actuator/prometheus - Метрики в формате Prometheus
+
+http://localhost:8080/actuator/metrics/{metricName} - Конкретная метрика
+
+### 3. Информация о приложении:
+http://localhost:8080/actuator/info - Информация о приложении
+
+http://localhost:8080/actuator/env - Переменные окружения
+
+http://localhost:8080/actuator/configprops - Конфигурационные свойства
+
+http://localhost:8080/actuator/beans - Все Spring бины
+
+### 4. Логи и debugging:
+http://localhost:8080/actuator/loggers - Настройки логгеров
+
+http://localhost:8080/actuator/loggers/{name} - Конкретный логгер
+
+http://localhost:8080/actuator/httptrace - HTTP трассировка
+
+http://localhost:8080/actuator/threaddump - Дамп потоков
+
+http://localhost:8080/actuator/heapdump - Дамп памяти (heap)
+

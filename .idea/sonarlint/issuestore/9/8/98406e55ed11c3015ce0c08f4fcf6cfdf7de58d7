@@ -1,0 +1,30 @@
+
+
+java:S1192"GDefine a constant instead of duplicating this literal "status" 3 times.(¥’›Üúÿÿÿÿ8‹óÚ²3J$b9d86eeb-09ed-4c22-95c9-191ab6762453
+‘
+java:S1192"HDefine a constant instead of duplicating this literal "message" 3 times.(Ù¢¡éÿÿÿÿÿ8ŒóÚ²3J$1c5aea90-5c08-48f0-a00e-7443d8ccb9fe
+
+java:S1192"GDefine a constant instead of duplicating this literal "testId" 3 times.(ø·Íúÿÿÿÿ8ŒóÚ²3J$0a03e8eb-e5eb-4a05-b397-1c6ae4b39f56
+‰
+java:S2184ê"@Cast one of the operands of this addition operation to a "long".(ş¶æûÿÿÿÿ8şÕ§æ´3J$7dbb2f64-d936-464d-8954-96d4ab6af62b
+†
+java:S2184©"BCast one of the operands of this addition operation to a "double".(µÕ·ÿ8•óÚ²3J$ce5eded7-cd43-46c6-94ec-621d3a1b189e
+‘
+java:S2095­"MUse try-with-resources or close this "ExecutorService" in a "finally" clause.(¡ìû€8şÚ§æ´3J$d6184baf-7629-46a2-8844-9d96d8c1908e
+–
+java:S3776™"RRefactor this method to reduce its Cognitive Complexity from 21 to the 15 allowed.(şÕúï8§ôÚ²3J$130cbb65-ce9d-48e8-bb15-2feae061831c
+
+java:S6809Ÿ"UCall transactional methods via an injected dependency instead of directly via 'this'.(«‹Èøÿÿÿÿ8©ôÚ²3J$6d5fd66f-44f0-4367-ada2-4c180f28f35e
+a
+java:S2119¹"Save and re-use this "Random".(¼İÅf8¯ôÚ²3J$160e1d85-b512-4ff3-8028-30f495e5071c
+‚	java:S899ê":Do something with the "boolean" value returned by "await".(ş¶æûÿÿÿÿ8¸ôÚ²3J$5b5c2ea0-2de2-44cd-872f-24e81d0fae40
+¾
+java:S6204"zReplace this usage of 'Stream.collect(Collectors.toList())' with 'Stream.toList()' and ensure that the list is unmodified.(ª™¨¹8¼ôÚ²3J$dce97d98-9e06-48db-ae6f-b00587144c62
+a
+java:S2119µ"Save and re-use this "Random".(¼İÅf8¾ôÚ²3J$38c30471-60f5-4870-8c1f-2144bd3b258e
+a
+java:S2119Ã"Save and re-use this "Random".(¼İÅf8ÀôÚ²3J$e4749739-e702-420b-95cc-4b04e94255db
+a
+java:S2119Ù"Save and re-use this "Random".(¼İÅf8ÁôÚ²3J$c0976ecc-0230-457b-9945-88703008f67b
+
+java:S1128"7Remove this unused import 'java.util.stream.IntStream'.(ÙÉ½Ÿùÿÿÿÿ8šÜ§æ´3J$2721ba76-5b91-4094-9cd0-c46da36070d4

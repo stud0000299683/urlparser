@@ -8,6 +8,9 @@ import com.utmn.chamortsev.urlparser.repository.UrlResultRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,6 +63,38 @@ public class UrlProcessingService {
         logger.info("ForkJoinPool запущен с параллелизмом {}", FORK_JOIN_PARALLELISM);
     }
 
+    // 🔥 КЭШ МЕТОДЫ - ПОСЛЕ КОНСТРУКТОРА
+    @Cacheable(value = "urlById", key = "#id")
+    public UrlEntity getUrlById(Long id) {
+        logger.info("🔴 CACHE MISS - DB query for URL ID: {}", id);
+        return urlRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("URL not found: " + id));
+    }
+
+    @Cacheable(value = "urls")
+    public List<UrlEntity> getAllUrls() {
+        logger.info("🔴 CACHE MISS - DB query for ALL URLs");
+        return urlRepository.findAll();
+    }
+
+    @Caching(evict = {
+            @CacheEvict(value = "urlById", key = "#url.id"),
+            @CacheEvict(value = "urls", allEntries = true)
+    })
+    @Transactional
+    public UrlEntity updateUrlEntity(UrlEntity url) {
+        logger.info("🟡 CACHE EVICT - updating URL ID: {}", url.getId());
+        return urlRepository.save(url);
+    }
+    @CacheEvict(value = {"urlById", "urls"}, key = "#id")
+    @Transactional
+    public void deleteUrlById(Long id) {
+        logger.info("🟡 CACHE EVICT - deleting URL ID: {}", id);
+        if (urlRepository.existsById(id)) {
+            urlRepository.deleteById(id);
+        }
+    }
+
     // НОВЫЙ МЕТОД: ForkJoin обработка
     @Transactional
     public CompletableFuture<Map<String, Object>> processUrlsWithForkJoin() {
@@ -87,7 +122,6 @@ public class UrlProcessingService {
             return finalResult;
         }, threadPoolExecutor);
     }
-
     // Метод для использования в ForkJoin задачах
     public Map<String, Object> processSingleUrlForForkJoin(UrlEntity urlEntity) {
         long startTime = System.currentTimeMillis();
@@ -595,7 +629,6 @@ public class UrlProcessingService {
         }
     }
 
-    // Остальные методы
     @Transactional
     public UrlEntity addUrl(String url, String name, String description) {
         if (urlRepository.existsByUrl(url)) {
@@ -659,5 +692,7 @@ public class UrlProcessingService {
     public void notifyResult(Long urlId, Map<String, Object> result) {
         messagingTemplate.convertAndSend("/topic/url/" + urlId, result);
     }
+
+
 }
 

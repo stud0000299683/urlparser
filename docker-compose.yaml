@@ -42,6 +42,7 @@
       timeout: 5s
       retries: 3
 
+
   app:
     build: .
     container_name: urlparser-app
@@ -64,3 +65,4 @@
 
 volumes:
   grafana_data:
+
