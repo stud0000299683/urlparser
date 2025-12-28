@@ -1,61 +1,90 @@
 
-”
-java:S1192…"KDefine a constant instead of duplicating this literal "User-Agent" 3 times.(ˆÓÆáıÿÿÿÿ8É€‰ç´3J$146a0e89-f74c-47d7-af7f-e1c1ce165051
-‘
-java:S1192â"MDefine a constant instead of duplicating this literal "workingHours" 8 times.(î’¢å8Ê€‰ç´3J$403fd988-48cc-4ae4-9635-d172fd231584
+‰	java:S112™"FDefine and throw a dedicated exception instead of using a generic one.(óÎ8ó¥²¤¶3J$93b5853d-eaf6-4eed-a2aa-1422ddee3004
+‰	java:S112µ"FDefine and throw a dedicated exception instead of using a generic one.(î©Ÿö8† ó§¶3J$503dbeb7-07d8-4359-a60e-73223a4dc046
+	java:S112"FDefine and throw a dedicated exception instead of using a generic one.(Ò‚Òéüÿÿÿÿ8† ó§¶3J$ca6f6df8-fbed-4e3a-a18b-b1fb319e5675
+‰	java:S112–"FDefine and throw a dedicated exception instead of using a generic one.( Ãú²8‡ ó§¶3J$c658c5f6-4836-4dc4-bcc3-4c0f3d5ca5bf
+‰	java:S112¾"FDefine and throw a dedicated exception instead of using a generic one.(óÎ8‡ ó§¶3J$469b2887-e648-473c-bf00-a35520ef0a1f
 ‹
-java:S1192¸"GDefine a constant instead of duplicating this literal "%.1f%%" 4 times.(§ÇÌ8Ê€‰ç´3J$593c1dcc-b556-4a22-9117-11b2c7a728f0
+java:S1192Ì"GDefine a constant instead of duplicating this literal "%.1f%%" 5 times.(§ÇÌ8ã«¤¶3J$6964a70b-704d-4d46-ad4d-165c99f101b7
+
+java:S1192¬"MDefine a constant instead of duplicating this literal "workingHours" 8 times.(½«Â8¸¤¯¤¶3J$b9544897-7f5b-45f6-9b06-9ba9635f3225
 œ
-java:S1192…"SDefine a constant instead of duplicating this literal "URL-Parser-Bot/1.0" 3 times.(ˆÓÆáıÿÿÿÿ8Ê€‰ç´3J$38f2069b-2df7-4076-83ab-6e1bea9a2e12
-‹
-java:S1192›"GDefine a constant instead of duplicating this literal "phone" 10 times.(üé‘¸8Ê€‰ç´3J$b03f40f6-4c41-4629-a304-02cd1c93c20a
-Œ
-java:S1192’"HDefine a constant instead of duplicating this literal "success" 3 times.(‚†¹•8Ê€‰ç´3J$a743cce6-6f20-4bed-b970-e3ad9e0c7a29
+java:S1192ß"SDefine a constant instead of duplicating this literal "URL-Parser-Bot/1.0" 3 times.(ˆÓÆáıÿÿÿÿ8»Ù¯¤¶3J$7a900f5c-d48e-491e-99f3-7dc5723fbc14
 •
-java:S1192“"LDefine a constant instead of duplicating this literal "processedAt" 3 times.(÷üÀòøÿÿÿÿ8Ê€‰ç´3J$86de5ba9-ca13-4c6d-9c91-2d2accd8e56c
+java:S1192ğ"LDefine a constant instead of duplicating this literal "processedAt" 3 times.(÷üÀòøÿÿÿÿ8¼Ù¯¤¶3J$af0dfc94-9722-4923-bdcd-93145ea40c2e
 
-java:S1192"FDefine a constant instead of duplicating this literal "urlId" 3 times.(€ Íÿÿÿÿÿ8Ê€‰ç´3J$b0b76c0a-22fa-4b64-bee2-f706d7c03bcb
+java:S1192í"KDefine a constant instead of duplicating this literal "statusCode" 3 times.(ç“®ü8¼Ù¯¤¶3J$4c5b6857-52d1-499c-8f88-66f3ca64f7a3
+
+java:S1192ê"FDefine a constant instead of duplicating this literal "urlId" 4 times.(€ Íÿÿÿÿÿ8¼Ù¯¤¶3J$28b9ad6d-5f0c-4cc6-a4b9-5e1b6e9da032
 
-java:S1192š"GDefine a constant instead of duplicating this literal "email" 10 times.(ÛêáÓûÿÿÿÿ8Ê€‰ç´3J$704a7f4a-d9a6-4b64-8300-23ea22e72ee6
-Œ
-java:S1192á"HDefine a constant instead of duplicating this literal "address" 8 times.(ÈğàÅ8Ê€‰ç´3J$29190e11-c2e5-4d7c-9ad9-9deb27e3b1b0
+java:S1192÷"GDefine a constant instead of duplicating this literal "email" 10 times.(ÛêáÓûÿÿÿÿ8¼Ù¯¤¶3J$d34f4e56-0568-444c-885b-536ee297a57b
+‘
+java:S1192«"HDefine a constant instead of duplicating this literal "address" 8 times.(‹¨±úÿÿÿÿ8¾¤¯¤¶3J$e3d50206-3f48-4ca9-9d15-23a151beb4b8
+”
+java:S1192ß"KDefine a constant instead of duplicating this literal "User-Agent" 3 times.(ˆÓÆáıÿÿÿÿ8½Ù¯¤¶3J$4c89e50c-6a03-4c3d-a2a2-e337fd01d26c
+‹
+java:S1192g"HDefine a constant instead of duplicating this literal "success" 5 times.(‚¥Ä8ã«¤¶3J$82b75c4e-8c4d-45bc-b8bd-b7c256925d01
+‘
+java:S1192¼"HDefine a constant instead of duplicating this literal "message" 3 times.(‹¯‰Şùÿÿÿÿ8‘ã«¤¶3J$aa08b858-9474-40e5-92fa-d183e74152c5
+‹
+java:S1192ø"GDefine a constant instead of duplicating this literal "phone" 10 times.(üé‘¸8»Ù¯¤¶3J$810bd2f8-3418-4b78-a65d-4f9d74c3990c
+Š
+java:S1192g"GDefine a constant instead of duplicating this literal "status" 3 times.(‚¥Ä8ã«¤¶3J$3fbc6c9a-5953-4d67-aac4-6c24b6f9d2cd
 
-java:S1192‘"MDefine a constant instead of duplicating this literal "responseTime" 4 times.(«¥P8Ê€‰ç´3J$a0aec4a9-964b-4071-a1d5-9da73c0313e5
+java:S1192î"MDefine a constant instead of duplicating this literal "responseTime" 5 times.(«¥P8¼Ù¯¤¶3J$ae9c2ffe-8879-452a-88d5-cc8567bc4ab4
+•
+java:S1192†"LDefine a constant instead of duplicating this literal "/topic/url/" 3 times.(¡¾œäûÿÿÿÿ8½Ù¯¤¶3J$2674866d-ce3e-4645-9d51-af6d431ff741
+˜
+java:S1192½"ODefine a constant instead of duplicating this literal "processedCount" 5 times.(™ëçƒüÿÿÿÿ8ã«¤¶3J$cdfd508b-d55e-4e26-a748-501f3de27251
+‘
+java:S1192Î"HDefine a constant instead of duplicating this literal "%.2f ms" 3 times.(Å±Üáşÿÿÿÿ8ã«¤¶3J$57444686-2bbf-4ce5-8ac2-0bfab9b33103
 
-java:S1192i"HDefine a constant instead of duplicating this literal "message" 3 times.(‹¯‰Şùÿÿÿÿ8Ê€‰ç´3J$08c2f966-5220-4093-bf2a-5a1cf7b7e4ff
-
-java:S1192ò"LDefine a constant instead of duplicating this literal "performance" 3 times.(äòëÔ8Ê€‰ç´3J$0794dd89-a266-4fb7-8874-c76d8b860653
-—
-java:S1192j"ODefine a constant instead of duplicating this literal "processedCount" 5 times.(™ëçƒüÿÿÿÿ8Ê€‰ç´3J$c06d7537-7e5f-48d6-9415-0b6dc3360530
+java:S1192¥"LDefine a constant instead of duplicating this literal "performance" 3 times.(äòëÔ8‘ã«¤¶3J$fae61890-bea0-411e-bc07-6913be82c5b3
+~
+java:S1141Í"5Extract this nested try block into a separate method.(¡»¢üùÿÿÿÿ8–ã«¤¶3J$51c44881-30fc-4c32-a11e-d5f063168ed8
 ©
-java:S1488¯"`Immediately return this expression instead of assigning it to the temporary variable "baseData".(øÃéÅÿÿÿÿÿ8Í€‰ç´3J$956f2731-acb8-46d2-8000-b70ad8b68a29
-†
-java:S6813±"BRemove this field injection and use constructor injection instead.(êæÄŞ8ï‰ç´3J$3324b88d-42b2-48b2-b506-13bbd6c03bd7
+java:S1488Ç"`Immediately return this expression instead of assigning it to the temporary variable "baseData".(øÃéÅÿÿÿÿÿ8šã«¤¶3J$5f2f0747-f506-4908-88cd-532728dfb254
 ¢
-java:S2142£"^Either re-interrupt this method or rethrow the "InterruptedException" that can be caught here.(”ı¾8‚‰ç´3J$a9e1ce50-9f41-4ae3-817e-cff68b576e8c
-—
-java:S1602÷"SRemove useless curly braces around statement and then remove useless return keyword(¹Ä÷8‹‚‰ç´3J$9282157a-bb2c-49f3-bc4c-dd7d89e84d7d
+java:S2142‹"^Either re-interrupt this method or rethrow the "InterruptedException" that can be caught here.(”ı¾8ªå«¤¶3J$ab43abd5-cd7f-4ea5-bbdf-00983f1aad84
+y
+java:S1481"0Remove this unused "errorResult" local variable.(˜á¨Íüÿÿÿÿ8Õ¡ó§¶3J$7947028d-b07f-4110-b6fa-05bc34b9acee
+œ
+java:S2139³"XEither log this exception and handle it, or rethrow it with some contextual information.(”ı¾8İ¡ó§¶3J$c633a968-484f-4921-a63e-20a3f00c7f28
 
-java:S6809ø"UCall transactional methods via an injected dependency instead of directly via 'this'.(ßúÿÿÿÿ8Œ‚‰ç´3J$0236529b-7153-4de4-86a9-1fdbb6ab1821
+java:S6809"UCall transactional methods via an injected dependency instead of directly via 'this'.(ßúÿÿÿÿ8Œ§²¤¶3J$0b615400-3890-4705-ad22-049496c9f54e
 ¾
-java:S6204œ"zReplace this usage of 'Stream.collect(Collectors.toList())' with 'Stream.toList()' and ensure that the list is unmodified.(ª™¨¹8‚‰ç´3J$702c20e5-3e80-45a6-9756-033341f142cf
+java:S6204´"zReplace this usage of 'Stream.collect(Collectors.toList())' with 'Stream.toList()' and ensure that the list is unmodified.(ª™¨¹8•å«¤¶3J$59068d27-371a-4aab-b4f3-6d326243be7e
 ¾
-java:S6204£"zReplace this usage of 'Stream.collect(Collectors.toList())' with 'Stream.toList()' and ensure that the list is unmodified.(äÒˆ8‚‰ç´3J$2635ce6a-6f87-4e95-b59e-35030f96ddce
+java:S6204»"zReplace this usage of 'Stream.collect(Collectors.toList())' with 'Stream.toList()' and ensure that the list is unmodified.(äÒˆ8˜å«¤¶3J$cd843efa-b598-4a61-adb2-5c67d0d96f0f
 ¢
-java:S2142ã"^Either re-interrupt this method or rethrow the "InterruptedException" that can be caught here.(”ı¾8“‚‰ç´3J$bb81dac8-dbd8-4827-98d0-a047247e01ce
+java:S2142‰"^Either re-interrupt this method or rethrow the "InterruptedException" that can be caught here.(”ı¾8€¢ó§¶3J$6df179c0-e22e-41cf-b9ae-e1aa4677b15b
+y
+java:S1481‹"0Remove this unused "errorResult" local variable.(˜á¨Íüÿÿÿÿ8†¢ó§¶3J$bfdca12d-5446-48a3-bf84-29d59aedc6fc
 ˆ
-java:S3358ˆ"DExtract this nested ternary operation into an independent statement.(«·ƒ¦8™‚‰ç´3J$78474541-86ba-429c-b814-fbf42ba7e09d
+java:S3358»"DExtract this nested ternary operation into an independent statement.(«·ƒ¦8§å«¤¶3J$706a6a0a-239b-4daa-adc7-914059f1112d
 ¢
-java:S2142ª"^Either re-interrupt this method or rethrow the "InterruptedException" that can be caught here.(”ı¾8š‚‰ç´3J$e398a9b0-81e3-49d3-a07f-a7e7a3c3ac44
-‡
-java:S3358Á"DExtract this nested ternary operation into an independent statement.(¢¬°+8‚‰ç´3J$4273e795-a8d8-4b35-ad44-89b4f820a214
+java:S2142İ"^Either re-interrupt this method or rethrow the "InterruptedException" that can be caught here.(”ı¾8¢ó§¶3J$44ac99ed-c4c4-43a4-a02b-b4f178de9cc1
 ˆ
-java:S3358Â"DExtract this nested ternary operation into an independent statement.(Ûåú¸8‚‰ç´3J$72b2b4a1-799e-45a1-8238-244082ce84db
+java:S3358ô"DExtract this nested ternary operation into an independent statement.(éşƒ8²å«¤¶3J$21630589-0bd6-4d51-8d57-ef1ec4e2c771
+ˆ
+java:S3358ô"DExtract this nested ternary operation into an independent statement.(éşƒ8²å«¤¶3J$dcf1ab12-25e1-43f2-9f1c-fb75dc14c387
 ¢
-java:S2142á"^Either re-interrupt this method or rethrow the "InterruptedException" that can be caught here.(”ı¾8‚‰ç´3J$43aef1e2-cb69-47ef-ba9d-f78aa07df108
+java:S2142®"^Either re-interrupt this method or rethrow the "InterruptedException" that can be caught here.(”ı¾8˜¢ó§¶3J$dc865dfb-baeb-4742-aeaa-8aa82fc7055f
+œ
+java:S2139®"XEither log this exception and handle it, or rethrow it with some contextual information.(”ı¾8¢ó§¶3J$78ff5307-d758-4f92-843a-1fd277ae0093
+y
+java:S1481³"0Remove this unused "savedResult" local variable.(ÒÓÅÍşÿÿÿÿ8Ÿ¢ó§¶3J$9967e288-f89e-4a3e-b68d-61180c50f5b9
 u
-java:S1172Ë",Remove this unused method parameter "urlId".(ÏÁİÜúÿÿÿÿ8ª‚‰ç´3J$01ac23f7-8911-422f-b999-d315b9ec8923
+java:S1172§",Remove this unused method parameter "urlId".(ÏÁİÜúÿÿÿÿ8Éå«¤¶3J$e21f74da-a391-4958-a0ad-13fa2839045a
 
-java:S6809†"UCall transactional methods via an injected dependency instead of directly via 'this'.(®È”„ûÿÿÿÿ8®‚‰ç´3J$a84c873d-9b1a-4ff4-acd7-fbc0357a9045
+java:S6809Ï"UCall transactional methods via an injected dependency instead of directly via 'this'.(®È”„ûÿÿÿÿ8Ïå«¤¶3J$342052a4-5215-4d53-9210-a4a503245bcf
+›
+java:S3776ó"RRefactor this method to reduce its Cognitive Complexity from 30 to the 15 allowed.(¢¸øÿÿÿÿ8ëå«¤¶3J$eb97d95a-1702-40a7-ade6-b6c24928a8cd
+{
+java:S1874‚"2Remove this use of "percentile"; it is deprecated.(ÁªƒĞùÿÿÿÿ8Ë¢ó§¶3J$eff4dbb4-ecd0-4105-8c68-bc3794dc8632
+v
+java:S1874ƒ"2Remove this use of "percentile"; it is deprecated.(®ÉİŞ8Ì¢ó§¶3J$a03634bb-3a0c-44bc-bfc9-f30cbe7ae697
+{
+java:S1874„"2Remove this use of "percentile"; it is deprecated.(«Ÿ…ƒûÿÿÿÿ8Í¢ó§¶3J$55b0760d-bbf2-4612-8450-28b9e5119362
 
-java:S5843Š"TSimplify this regular expression to reduce its complexity from 23 to the 20 allowed.(èŒ×³üÿÿÿÿ8²‚‰ç´3J$33b1f8cc-7821-40e9-9b63-a37778dadc46
+java:S5843å"TSimplify this regular expression to reduce its complexity from 23 to the 20 allowed.(èŒ×³üÿÿÿÿ8Û¢ó§¶3J$8e3bf3b7-34da-4fb5-bc82-91738ec6bd1b

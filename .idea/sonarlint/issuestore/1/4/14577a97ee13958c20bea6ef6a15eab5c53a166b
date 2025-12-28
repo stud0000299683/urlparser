@@ -1,0 +1,9 @@
+
+	java:S112r"FDefine and throw a dedicated exception instead of using a generic one.(Ò‚Òéüÿÿÿÿ8ÑÁñ§¶3J$a46b7284-bec6-407b-84cd-68d0b0d86b97
+	java:S112Î"FDefine and throw a dedicated exception instead of using a generic one.(àøòÌúÿÿÿÿ8ÓÁñ§¶3J$78384c69-5f11-4428-9d38-d78ffdca4004
+É
+java:S1192""…Define a constant instead of duplicating this literal "Tracer Ğ½Ğµ Ğ¸Ğ½Ğ¸Ñ†Ğ¸Ğ°Ğ»Ğ¸Ğ·Ğ¸Ñ€Ğ¾Ğ²Ğ°Ğ½, ÑĞ¾Ğ·Ğ´Ğ°ĞµĞ¼ NoOp span" 5 times.(ÏÖå8ÔÁñ§¶3J$c941325c-5dc8-414a-9182-38e7a1650b98
+
+java:S1192*"JDefine a constant instead of duplicating this literal "span.type" 5 times.(ÎÓÿ8ÕÁñ§¶3J$6a15390b-b2a4-467f-9de8-beedd6c3c8a4
+œ
+java:S2139„"XEither log this exception and handle it, or rethrow it with some contextual information.(”ı¾8Âñ§¶3J$f85a7639-a05c-4d2b-bd2e-1f38069cca35

@@ -1,0 +1,65 @@
+
+
+java:S1192ª"JDefine a constant instead of duplicating this literal "jaegerUrl" 3 times.(äñî68ğÒå¤¶3J$b27d5777-72ca-476d-a6d7-3d4f911bbbd9
+“
+java:S1192ÿ"JDefine a constant instead of duplicating this literal "task.type" 6 times.(ÍøàÇûÿÿÿÿ8ğÒå¤¶3J$c0823b3f-7214-4663-b756-23151c704024
+•
+java:S1192Á"LDefine a constant instead of duplicating this literal "INTERRUPTED" 4 times.(á˜«Îüÿÿÿÿ8ğÒå¤¶3J$a4e7c3a4-38a9-46d1-b719-91c52f0e3153
+’
+java:S11928"ODefine a constant instead of duplicating this literal "tracingEnabled" 9 times.(«İŒ8ğÒå¤¶3J$da77194f-f1f4-4e2e-b751-b01ddd6749f1
+“
+java:S1192¼"JDefine a constant instead of duplicating this literal "COMPLETED" 4 times.(Ñä½øÿÿÿÿ8ğÒå¤¶3J$d5eeeec6-a3ef-447a-9a1c-88995161fb90
+’
+java:S11929"JDefine a constant instead of duplicating this literal "timestamp" 5 times.(™ÃÍüÿÿÿÿ8ğÒå¤¶3J$7ff271ec-d97c-49d8-80ae-68a1ade0e691
+
+java:S1192µ"JDefine a constant instead of duplicating this literal "operation" 4 times.(Ò¾¬£8ğÒå¤¶3J$f9b2dab3-6efe-4c90-aeb5-db82ba7b6019
+‘
+java:S1192@"ODefine a constant instead of duplicating this literal "operation.type" 4 times.(Éšù8ğÒå¤¶3J$f79cb443-129a-45fd-8ef6-45483cd7f335
+‹
+java:S1192¸"GDefine a constant instead of duplicating this literal "spanId" 3 times.(áÓ¡ª8ñÒå¤¶3J$04fd9184-20c1-4e25-8b4b-e9b1b12a650a
+¨
+java:S1192M"`Define a constant instead of duplicating this literal "http://localhost:16686/trace/%s" 4 times.(öĞĞÅıÿÿÿÿ8ñÒå¤¶3J$3707b332-89d2-4074-b6aa-cb46a94edc46
+‘
+java:S1192®"HDefine a constant instead of duplicating this literal "message" 4 times.(õ¹½úıÿÿÿÿ8ñÒå¤¶3J$a778f8d6-fb9d-47ca-b14b-f025e20fe11e
+
+java:S1192"KDefine a constant instead of duplicating this literal "validation" 4 times.(¥õ¿Â8ñÒå¤¶3J$73eb02aa-2e34-4503-96cb-8188896a9acd
+‘
+java:S1192·"HDefine a constant instead of duplicating this literal "traceId" 4 times.(ÿ•ô­øÿÿÿÿ8ñÒå¤¶3J$86bcb5cb-80d1-4ec5-b3c9-1a871d6f7e43
+®
+java:S11927"kDefine a constant instead of duplicating this literal "Tracer Ğ½Ğµ Ğ¸Ğ½Ğ¸Ñ†Ğ¸Ğ°Ğ»Ğ¸Ğ·Ğ¸Ñ€Ğ¾Ğ²Ğ°Ğ½" 7 times.(²Œ»¬8ñÒå¤¶3J$238d6f65-2dc1-41e3-82ee-63eb7a72a413
+½
+java:S1192¥"yDefine a constant instead of duplicating this literal "Ğ¡Ñ‚Ğ°Ñ‚Ğ¸ÑÑ‚Ğ¸ĞºĞ° Ñ‚Ñ€ĞµĞ¹ÑĞ¸Ğ½Ğ³Ğ° ÑĞ±Ñ€Ğ¾ÑˆĞµĞ½Ğ°" 3 times.(Ó÷À8¸ŠÚ§¶3J$c95884b2-3cb0-44cb-a310-dd0734076b88
+•
+java:S1192À"LDefine a constant instead of duplicating this literal "Interrupted" 8 times.(Úßµ¼ûÿÿÿÿ8ñÒå¤¶3J$c11cd5e2-2ef8-455f-bd3d-ba8d76505457
+“
+java:S1192¶"JDefine a constant instead of duplicating this literal "subsystem" 3 times.(İÓ’úÿÿÿÿ8ñÒå¤¶3J$9e4b8f8f-7cac-4d00-ba9e-a548ffed07ee
+Š
+java:S11927"GDefine a constant instead of duplicating this literal "error" 15 times.(²Œ»¬8ñÒå¤¶3J$99a732d6-c1cc-4167-8269-9b96efa012b7
+”
+java:S1192?"LDefine a constant instead of duplicating this literal "http.method" 7 times.(ÑáĞûÿÿÿÿ8ñÒå¤¶3J$6b598bb8-b1d5-4055-a17c-5a5cc67a6c87
+“
+java:S1192>"KDefine a constant instead of duplicating this literal "http.route" 7 times.(–Íúğùÿÿÿÿ8ñÒå¤¶3J$40157086-c6ac-4984-a3df-b69805cc715b
+~
+java:S1141¹"5Extract this nested try block into a separate method.(È¢Âêúÿÿÿÿ8óÒå¤¶3J$85cb4825-62ca-4318-9bab-768d5c01be6c
+y
+java:S1141Í"5Extract this nested try block into a separate method.(ïËÎÅ8óÒå¤¶3J$f877301a-af27-4ed1-b0f5-960675c0a10e
+~
+java:S1141ú"5Extract this nested try block into a separate method.(Ó…‹ıÿÿÿÿ8óÒå¤¶3J$4f4dafd8-6d47-49d9-9157-2452eac2b698
+~
+java:S1141æ"5Extract this nested try block into a separate method.(–ú¦‚ûÿÿÿÿ8óÒå¤¶3J$3f58522a-7486-4401-9c08-fb5178ca6dca
+y
+java:S1141Ô"5Extract this nested try block into a separate method.(Šò‰·8ôÒå¤¶3J$65bbfe0d-2f4c-428a-bab3-c36593c2e9e6
+„
+java:S1710."<Remove the 'ApiResponses' wrapper from this annotation group(Å¬†—üÿÿÿÿ8úÒå¤¶3J$d11e1a1b-eeea-4090-8b6b-efa1abb73932
+…
+java:S1710•"<Remove the 'ApiResponses' wrapper from this annotation group(Å¬†—üÿÿÿÿ8úÒå¤¶3J$a9dd4dcc-0dd3-4be5-b2f8-2d82b799eb68
+…
+java:S1710Ã"<Remove the 'ApiResponses' wrapper from this annotation group(Å¬†—üÿÿÿÿ8úÒå¤¶3J$e7c552aa-66c6-4458-b021-b8349c81123e
+…
+java:S1710 "<Remove the 'ApiResponses' wrapper from this annotation group(Å¬†—üÿÿÿÿ8úÒå¤¶3J$65a45e89-d05d-43e2-90d0-a91fc1f08cc2
+…
+java:S1710‹"<Remove the 'ApiResponses' wrapper from this annotation group(Å¬†—üÿÿÿÿ8úÒå¤¶3J$c34ebaee-9a04-4f65-a2d1-10e42b8ebb6f
+‡
+java:S2583ú"CChange this condition so that it does not always evaluate to "true"(ÃÒÍå8¯×å¤¶3J$9231dfef-0089-4a09-8cb6-1af7d47f2744
+›
+java:S3776È"RRefactor this method to reduce its Cognitive Complexity from 18 to the 15 allowed.(Û¡ÌÏıÿÿÿÿ8Ñ×å¤¶3J$abcc94e9-e3b9-491e-8cf8-15fc8fa671f3

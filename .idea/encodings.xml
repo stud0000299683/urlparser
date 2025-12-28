@@ -3,6 +3,7 @@
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java/com/utmn/chamortsev/hw12/SimpleEventSystem.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/test/java/com/utmn/chamortsev/urlparser/core/ContactExtractorTest.java" charset="UTF-8" />
     <file url="PROJECT" charset="windows-1251" />
   </component>
 </project>

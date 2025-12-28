@@ -5,9 +5,11 @@ import com.utmn.chamortsev.urlparser.entity.UrlResultEntity;
 import com.utmn.chamortsev.urlparser.repository.UrlRepository;
 import com.utmn.chamortsev.urlparser.repository.UrlResultRepository;
 
+import io.micrometer.core.instrument.*;
+import io.micrometer.core.instrument.Timer;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -20,29 +22,48 @@ import java.util.concurrent.*;
 import java.net.http.*;
 import java.net.URI;
 import java.time.Duration;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
-
 
 @Service
 public class UrlProcessingService {
 
     private static final Logger logger = LoggerFactory.getLogger(UrlProcessingService.class);
 
+    private final MeterRegistry meterRegistry;
+    private Timer parsingTimer;
+    private Counter successfulParsingCounter;
+    private Counter failedParsingCounter;
+    private Counter databaseWriteCounter;
+    private AtomicInteger activeProcessingCount;
+    private DistributionSummary responseTimeDistribution;
+    private AtomicLong totalUrlsInDatabase;
+
     private final UrlRepository urlRepository;
     private final UrlResultRepository urlResultRepository;
     private final ThreadPoolExecutor threadPoolExecutor;
     private final ForkJoinPool forkJoinPool;
     private final HttpClient httpClient;
-
     private static final int THREAD_POOL_SIZE = 5;
     private static final int FORK_JOIN_PARALLELISM = 8;
     private static final Duration TIMEOUT = Duration.ofSeconds(10);
+    private final TracingService tracingService;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    public UrlProcessingService(UrlRepository urlRepository, UrlResultRepository urlResultRepository) {
+    public UrlProcessingService(UrlRepository urlRepository,
+                                UrlResultRepository urlResultRepository,
+                                MeterRegistry meterRegistry,
+                                TracingService tracingService,
+                                SimpMessagingTemplate messagingTemplate) {
+
         this.urlRepository = urlRepository;
         this.urlResultRepository = urlResultRepository;
+        this.meterRegistry = meterRegistry;
+        this.tracingService = tracingService;
+        this.messagingTemplate = messagingTemplate;
 
         this.threadPoolExecutor = new ThreadPoolExecutor(
                 THREAD_POOL_SIZE,
@@ -61,19 +82,80 @@ public class UrlProcessingService {
 
         logger.info("ThreadPoolExecutor запущен с {} потоками", THREAD_POOL_SIZE);
         logger.info("ForkJoinPool запущен с параллелизмом {}", FORK_JOIN_PARALLELISM);
+        logger.info("TracingService инициализирован: {}", tracingService != null);
     }
 
-    // 🔥 КЭШ МЕТОДЫ - ПОСЛЕ КОНСТРУКТОРА
+    @PostConstruct
+    private void initMetrics() {
+        logger.info("Инициализация метрик Micrometer...");
+
+        // Таймер для измерения времени выполнения парсинга с процентилями
+        parsingTimer = Timer.builder("url.parsing.time")
+                .description("Время выполнения парсинга URL")
+                .tags("service", "url-parser")
+                .publishPercentiles(0.5, 0.95, 0.99) // 50-й, 95-й и 99-й процентили
+                .publishPercentileHistogram()
+                .register(meterRegistry);
+
+        // Счетчики для успешных и неуспешных парсингов
+        successfulParsingCounter = Counter.builder("url.parsing.success")
+                .description("Количество успешных парсингов")
+                .tags("status", "success")
+                .register(meterRegistry);
+
+        failedParsingCounter = Counter.builder("url.parsing.failure")
+                .description("Количество ошибочных парсингов")
+                .tags("status", "failure")
+                .register(meterRegistry);
+
+        // Счетчик для записей в базе данных
+        databaseWriteCounter = Counter.builder("database.write.count")
+                .description("Количество записей в базе данных")
+                .tags("table", "url_results")
+                .register(meterRegistry);
+
+        // Gauge для активных процессов парсинга
+        activeProcessingCount = new AtomicInteger(0);
+        Gauge.builder("url.parsing.active", activeProcessingCount, AtomicInteger::get)
+                .description("Активные процессы парсинга")
+                .register(meterRegistry);
+
+        // Распределение времени ответа
+        responseTimeDistribution = DistributionSummary.builder("url.response.time.distribution")
+                .description("Распределение времени ответа от URL")
+                .baseUnit("milliseconds")
+                .register(meterRegistry);
+
+        // Gauge для общего количества URL в базе
+        totalUrlsInDatabase = new AtomicLong(0);
+        Gauge.builder("database.urls.total", totalUrlsInDatabase, AtomicLong::get)
+                .description("Общее количество URL в базе данных")
+                .register(meterRegistry);
+
+        // Gauge для общего количества результатов в базе
+        Gauge.builder("database.results.total", urlResultRepository::count)
+                .description("Общее количество результатов парсинга")
+                .register(meterRegistry);
+
+        // Gauge для активных URL
+        Gauge.builder("database.urls.active", urlRepository::countActiveUrls)
+                .description("Количество активных URL")
+                .register(meterRegistry);
+
+        logger.info("Метрики успешно инициализированы");
+    }
+
+    //КЭШ МЕТОДЫ
     @Cacheable(value = "urlById", key = "#id")
     public UrlEntity getUrlById(Long id) {
-        logger.info("🔴 CACHE MISS - DB query for URL ID: {}", id);
+        logger.info("CACHE MISS - DB query for URL ID: {}", id);
         return urlRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("URL not found: " + id));
     }
 
     @Cacheable(value = "urls")
     public List<UrlEntity> getAllUrls() {
-        logger.info("🔴 CACHE MISS - DB query for ALL URLs");
+        logger.info("CACHE MISS - DB query for ALL URLs");
         return urlRepository.findAll();
     }
 
@@ -83,19 +165,20 @@ public class UrlProcessingService {
     })
     @Transactional
     public UrlEntity updateUrlEntity(UrlEntity url) {
-        logger.info("🟡 CACHE EVICT - updating URL ID: {}", url.getId());
+        logger.info("CACHE EVICT - updating URL ID: {}", url.getId());
         return urlRepository.save(url);
     }
+
     @CacheEvict(value = {"urlById", "urls"}, key = "#id")
     @Transactional
     public void deleteUrlById(Long id) {
-        logger.info("🟡 CACHE EVICT - deleting URL ID: {}", id);
+        logger.info("CACHE EVICT - deleting URL ID: {}", id);
         if (urlRepository.existsById(id)) {
             urlRepository.deleteById(id);
         }
     }
 
-    // НОВЫЙ МЕТОД: ForkJoin обработка
+    // ForkJoin обработка
     @Transactional
     public CompletableFuture<Map<String, Object>> processUrlsWithForkJoin() {
         List<UrlEntity> activeUrls = urlRepository.findByActiveTrueOrderByCreatedAtDesc();
@@ -122,50 +205,115 @@ public class UrlProcessingService {
             return finalResult;
         }, threadPoolExecutor);
     }
+
     // Метод для использования в ForkJoin задачах
-    public Map<String, Object> processSingleUrlForForkJoin(UrlEntity urlEntity) {
-        long startTime = System.currentTimeMillis();
+    public Map<String, Object> processSingleUrlForForkJoin(UrlEntity urlEntity) throws Exception {
+        return tracingService.traceOperation("processSingleUrlForForkJoin",
+                urlEntity.getUrl(), () -> {
+                    long startTime = System.currentTimeMillis();
 
-        try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(urlEntity.getUrl()))
-                    .timeout(TIMEOUT)
-                    .header("User-Agent", "URL-Parser-Bot/1.0")
-                    .GET()
-                    .build();
+                    // Измерение времени для метрик
+                    Timer.Sample sample = Timer.start(meterRegistry);
+                    activeProcessingCount.incrementAndGet();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            long responseTime = System.currentTimeMillis() - startTime;
+                    try {
+                        HttpRequest request = HttpRequest.newBuilder()
+                                .uri(URI.create(urlEntity.getUrl()))
+                                .timeout(TIMEOUT)
+                                .header("User-Agent", "URL-Parser-Bot/1.0")
+                                .GET()
+                                .build();
 
-            Map<String, Object> result = new HashMap<>();
-            result.put("urlId", urlEntity.getId());
-            result.put("url", urlEntity.getUrl());
-            result.put("name", urlEntity.getName());
-            result.put("statusCode", response.statusCode());
-            result.put("responseTime", responseTime);
-            result.put("success", response.statusCode() == 200);
-            result.put("processedAt", new Date());
+                        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                        long responseTime = System.currentTimeMillis() - startTime;
 
-            // Извлекаем контактную информацию
-            Map<String, String> contactInfo = extractContactInfo(response.body());
-            result.putAll(contactInfo);
+                        // Регистрируем время ответа
+                        responseTimeDistribution.record(responseTime);
 
-            // Подсчет количества найденных элементов
-            result.put("emailCount", countEmails(contactInfo.get("email")));
-            result.put("phoneCount", countPhones(contactInfo.get("phone")));
-            result.put("totalContactsFound", calculateTotalContacts(contactInfo));
+                        Map<String, Object> result = new HashMap<>();
+                        result.put("urlId", urlEntity.getId());
+                        result.put("url", urlEntity.getUrl());
+                        result.put("name", urlEntity.getName());
+                        result.put("statusCode", response.statusCode());
+                        result.put("responseTime", responseTime);
+                        result.put("success", response.statusCode() == 200);
+                        result.put("processedAt", new Date());
 
-            // Сохраняем в базу
-            saveUrlResult(urlEntity, response.statusCode(), responseTime, contactInfo, null);
+                        // Извлекаем контактную информацию
+                        Map<String, String> contactInfo = extractContactInfo(response.body());
+                        result.putAll(contactInfo);
 
-            return result;
+                        // Подсчет количества найденных элементов
+                        result.put("emailCount", countEmails(contactInfo.get("email")));
+                        result.put("phoneCount", countPhones(contactInfo.get("phone")));
+                        result.put("totalContactsFound", calculateTotalContacts(contactInfo));
 
-        } catch (Exception e) {
-            long responseTime = System.currentTimeMillis() - startTime;
-            Map<String, Object> errorResult = createErrorResult(urlEntity, e.getMessage());
-            saveUrlResult(urlEntity, -1, responseTime, Collections.emptyMap(), e.getMessage());
-            return errorResult;
-        }
+                        // Сохраняем в базу и обновляем метрики
+                        if (saveUrlResult(urlEntity, response.statusCode(), responseTime, contactInfo, null)) {
+                            successfulParsingCounter.increment();
+                            databaseWriteCounter.increment();
+                        }
+
+                        // Останавливаем таймер
+                        sample.stop(parsingTimer);
+
+                        // Отправляем уведомление через WebSocket
+                        if (messagingTemplate != null) {
+                            messagingTemplate.convertAndSend("/topic/url/" + urlEntity.getId(), result);
+                        }
+
+                        return result;
+
+                    } catch (Exception e) {
+                        long responseTime = System.currentTimeMillis() - startTime;
+                        Map<String, Object> errorResult = createErrorResult(urlEntity, e.getMessage());
+
+                        // Останавливаем таймер для ошибок
+                        sample.stop(parsingTimer);
+
+                        // Обновляем метрики ошибок
+                        failedParsingCounter.increment();
+
+                        // Сохраняем результат с ошибкой
+                        saveUrlResult(urlEntity, -1, responseTime, Collections.emptyMap(), e.getMessage());
+
+                        // Пробрасываем исключение для корректного трейсинга ошибок
+                        throw new RuntimeException("Ошибка обработки URL: " + e.getMessage(), e);
+                    } finally {
+                        activeProcessingCount.decrementAndGet();
+                        updateUrlCountMetrics();
+                    }
+                });
+    }
+
+    // Метод сохранения результатов
+    private boolean saveUrlResult(UrlEntity urlEntity, Integer statusCode, Long responseTime,
+                                  Map<String, String> contactInfo, String errorMessage) throws Exception {
+        return tracingService.traceOperation("saveUrlResult",
+                "db://url/" + urlEntity.getId(), () -> {
+                    try {
+                        UrlResultEntity result = new UrlResultEntity(urlEntity, statusCode, responseTime);
+                        if (contactInfo != null) {
+                            result.setEmail(contactInfo.get("email"));
+                            result.setPhone(contactInfo.get("phone"));
+                            result.setAddress(contactInfo.get("address"));
+                            result.setWorkingHours(contactInfo.get("workingHours"));
+                        }
+                        if (errorMessage != null) {
+                            result.setErrorMessage(errorMessage);
+                        }
+                        urlResultRepository.save(result);
+                        return true;
+                    } catch (Exception e) {
+                        logger.error("Ошибка сохранения результата для URL: {}", urlEntity.getUrl(), e);
+                        throw new RuntimeException("Ошибка сохранения в БД: " + e.getMessage(), e);
+                    }
+                });
+    }
+
+    private void updateUrlCountMetrics() {
+        // Обновляем метрики счетчиков
+        totalUrlsInDatabase.set(urlRepository.count());
     }
 
     // Агрегированная статистика
@@ -245,7 +393,11 @@ public class UrlProcessingService {
 
         for (UrlEntity url : activeUrls) {
             CompletableFuture<UrlResultEntity> future = CompletableFuture.supplyAsync(() -> {
-                return processSingleUrl(url);
+                try {
+                    return processSingleUrl(url);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
             }, threadPoolExecutor);
             futures.add(future);
         }
@@ -308,7 +460,7 @@ public class UrlProcessingService {
                     }
                 }, threadPoolExecutor)
                 .thenApply(this::applyDataTransformations) // Применяем преобразования
-                .thenCombine(getAdditionalUrlInfo(urlEntity.getId()), this::combineResults) // Объединяем с дополнительной информацией
+                .thenCombine(getAdditionalUrlInfo(urlEntity.getId()), this::combineResults) // Объединяем с доп. информацией
                 .exceptionally(ex -> {
                     logger.error("Ошибка в цепочке обработки для URL: {}", urlEntity.getUrl(), ex);
                     return createErrorResult(urlEntity, ex.getMessage());
@@ -316,48 +468,75 @@ public class UrlProcessingService {
     }
 
     // Получение базовых данных URL
-    private Map<String, Object> getUrlBaseData(UrlEntity urlEntity) {
-        long startTime = System.currentTimeMillis();
+    private Map<String, Object> getUrlBaseData(UrlEntity urlEntity) throws Exception {
+        return tracingService.traceOperation("getUrlBaseData", urlEntity.getUrl(), () -> {
+            long startTime = System.currentTimeMillis();
 
-        try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(urlEntity.getUrl()))
-                    .timeout(TIMEOUT)
-                    .header("User-Agent", "URL-Parser-Bot/1.0")
-                    .GET()
-                    .build();
+            // Начинаем измерение времени
+            Timer.Sample sample = Timer.start(meterRegistry);
+            activeProcessingCount.incrementAndGet();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            long responseTime = System.currentTimeMillis() - startTime;
+            try {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(urlEntity.getUrl()))
+                        .timeout(TIMEOUT)
+                        .header("User-Agent", "URL-Parser-Bot/1.0")
+                        .GET()
+                        .build();
 
-            // Создаем результат
-            Map<String, Object> result = new HashMap<>();
-            result.put("urlId", urlEntity.getId());
-            result.put("url", urlEntity.getUrl());
-            result.put("name", urlEntity.getName());
-            result.put("statusCode", response.statusCode());
-            result.put("responseTime", responseTime);
-            result.put("success", response.statusCode() == 200);
-            result.put("processedAt", new Date());
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                long responseTime = System.currentTimeMillis() - startTime;
 
-            // Извлекаем контактную информацию
-            Map<String, String> contactInfo = extractContactInfo(response.body());
-            result.putAll(contactInfo);
+                // Регистрируем время ответа
+                responseTimeDistribution.record(responseTime);
 
-            // Сохраняем в базу
-            saveUrlResult(urlEntity, response.statusCode(), responseTime, contactInfo, null);
+                // Создаем результат
+                Map<String, Object> result = new HashMap<>();
+                result.put("urlId", urlEntity.getId());
+                result.put("url", urlEntity.getUrl());
+                result.put("name", urlEntity.getName());
+                result.put("statusCode", response.statusCode());
+                result.put("responseTime", responseTime);
+                result.put("success", response.statusCode() == 200);
+                result.put("processedAt", new Date());
 
-            logger.debug("Успешно обработан URL: {} - Status: {} - Time: {}ms",
-                    urlEntity.getUrl(), response.statusCode(), responseTime);
+                // Извлекаем контактную информацию
+                Map<String, String> contactInfo = extractContactInfo(response.body());
+                result.putAll(contactInfo);
 
-            return result;
+                // Сохраняем в базу и обновляем метрики
+                if (saveUrlResult(urlEntity, response.statusCode(), responseTime, contactInfo, null)) {
+                    successfulParsingCounter.increment();
+                    databaseWriteCounter.increment();
+                }
 
-        } catch (Exception e) {
-            long responseTime = System.currentTimeMillis() - startTime;
-            Map<String, Object> errorResult = createErrorResult(urlEntity, e.getMessage());
-            saveUrlResult(urlEntity, -1, responseTime, Collections.emptyMap(), e.getMessage());
-            return errorResult;
-        }
+                logger.debug("Успешно обработан URL: {} - Status: {} - Time: {}ms",
+                        urlEntity.getUrl(), response.statusCode(), responseTime);
+
+                // Останавливаем таймер
+                sample.stop(parsingTimer);
+
+                return result;
+
+            } catch (Exception e) {
+                long responseTime = System.currentTimeMillis() - startTime;
+                Map<String, Object> errorResult = createErrorResult(urlEntity, e.getMessage());
+
+                // Останавливаем таймер
+                sample.stop(parsingTimer);
+
+                // Обновляем метрики ошибок
+                failedParsingCounter.increment();
+
+                saveUrlResult(urlEntity, -1, responseTime, Collections.emptyMap(), e.getMessage());
+
+                // Пробрасываем исключение для трейсинга
+                throw new RuntimeException("Ошибка получения базовых данных: " + e.getMessage(), e);
+            } finally {
+                activeProcessingCount.decrementAndGet();
+                updateUrlCountMetrics();
+            }
+        });
     }
 
     // Применение преобразований к данным
@@ -394,14 +573,14 @@ public class UrlProcessingService {
         return transformed;
     }
 
-    // Асинхронное получение дополнительной информации (например, из кэша или другого сервиса)
+    // Асинхронное получение дополнительной информации
     private CompletableFuture<Map<String, Object>> getAdditionalUrlInfo(Long urlId) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 Map<String, Object> additionalInfo = new HashMap<>();
 
-                // Симулируем получение дополнительных данных (например, из кэша, внешнего API и т.д.)
-                Thread.sleep(100); // Имитация задержки
+                // Симулируем получение дополнительных данных
+                Thread.sleep(100);
 
                 // Получаем исторические данные
                 List<UrlResultEntity> history = urlResultRepository.findByUrlEntityIdOrderByProcessedAtDesc(urlId);
@@ -418,7 +597,7 @@ public class UrlProcessingService {
                     additionalInfo.put("avgHistoricalResponseTime", avgHistoricalTime);
                 }
 
-                // Рейтинг надежности (симулируем)
+                // Рейтинг надежности
                 additionalInfo.put("reliabilityRating", calculateReliabilityRating(urlId));
 
                 return additionalInfo;
@@ -446,52 +625,90 @@ public class UrlProcessingService {
 
         combined.put("overallScore", Math.round(overallScore * 100.0) / 100.0);
         combined.put("overallRating", overallScore >= 0.8 ? "EXCELLENT" :
-                overallScore >= 0.6 ? "GOOD" :
-                        overallScore >= 0.4 ? "FAIR" : "POOR");
+                overallScore >= 0.6 ? "GOOD" : overallScore >= 0.4 ? "FAIR" : "POOR");
 
         return combined;
     }
 
-    // ОРИГИНАЛЬНЫЙ МЕТОД обработки одного URL
+    // Метод обработки одного URL
     @Transactional
-    public UrlResultEntity processSingleUrl(UrlEntity urlEntity) {
-        long startTime = System.currentTimeMillis();
-        logger.debug("Обработка URL: {}", urlEntity.getUrl());
+    public UrlResultEntity processSingleUrl(UrlEntity urlEntity) throws Exception {
+        return tracingService.traceOperation("processSingleUrl", urlEntity.getUrl(), () -> {
+            long startTime = System.currentTimeMillis();
+            logger.debug("Обработка URL: {}", urlEntity.getUrl());
 
-        try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(urlEntity.getUrl()))
-                    .timeout(TIMEOUT)
-                    .header("User-Agent", "URL-Parser-Bot/1.0")
-                    .GET()
-                    .build();
+            // Начинаем измерение времени
+            Timer.Sample sample = Timer.start(meterRegistry);
+            activeProcessingCount.incrementAndGet();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            long responseTime = System.currentTimeMillis() - startTime;
+            try {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(urlEntity.getUrl()))
+                        .timeout(TIMEOUT)
+                        .header("User-Agent", "URL-Parser-Bot/1.0")
+                        .GET()
+                        .build();
 
-            UrlResultEntity result = new UrlResultEntity(urlEntity, response.statusCode(), responseTime);
-            extractContactInfoToEntity(response.body(), result);
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                long responseTime = System.currentTimeMillis() - startTime;
 
-            UrlResultEntity savedResult = urlResultRepository.save(result);
-            logger.info("Успешно обработан URL: {} - Status: {} - Time: {}ms",
-                    urlEntity.getUrl(), response.statusCode(), responseTime);
+                // Регистрируем время ответа
+                responseTimeDistribution.record(responseTime);
 
-            return savedResult;
+                UrlResultEntity result = new UrlResultEntity(urlEntity, response.statusCode(), responseTime);
+                extractContactInfoToEntity(response.body(), result);
 
-        } catch (Exception e) {
-            long responseTime = System.currentTimeMillis() - startTime;
-            UrlResultEntity result = new UrlResultEntity(urlEntity, -1, responseTime);
-            result.setErrorMessage(e.getMessage());
+                UrlResultEntity savedResult = urlResultRepository.save(result);
 
-            UrlResultEntity savedResult = urlResultRepository.save(result);
-            logger.error("Ошибка обработки URL: {} - Error: {}", urlEntity.getUrl(), e.getMessage());
+                // Обновляем метрики
+                successfulParsingCounter.increment();
+                databaseWriteCounter.increment();
 
-            return savedResult;
-        }
+                logger.info("Успешно обработан URL: {} - Status: {} - Time: {}ms",
+                        urlEntity.getUrl(), response.statusCode(), responseTime);
+
+                // Останавливаем таймер
+                sample.stop(parsingTimer);
+
+                // Отправляем уведомление через WebSocket
+                if (messagingTemplate != null) {
+                    Map<String, Object> wsResult = new HashMap<>();
+                    wsResult.put("urlId", urlEntity.getId());
+                    wsResult.put("url", urlEntity.getUrl());
+                    wsResult.put("statusCode", response.statusCode());
+                    wsResult.put("responseTime", responseTime);
+                    wsResult.put("success", true);
+                    messagingTemplate.convertAndSend("/topic/url/" + urlEntity.getId(), wsResult);
+                }
+
+                return savedResult;
+
+            } catch (Exception e) {
+                long responseTime = System.currentTimeMillis() - startTime;
+                UrlResultEntity result = new UrlResultEntity(urlEntity, -1, responseTime);
+                result.setErrorMessage(e.getMessage());
+
+                UrlResultEntity savedResult = urlResultRepository.save(result);
+
+                // Обновляем метрики ошибок
+                failedParsingCounter.increment();
+
+                logger.error("Ошибка обработки URL: {} - Error: {}", urlEntity.getUrl(), e.getMessage());
+
+                // Останавливаем таймер
+                sample.stop(parsingTimer);
+
+                // Пробрасываем исключение для трейсинга
+                throw new RuntimeException("Ошибка обработки URL: " + e.getMessage(), e);
+            } finally {
+                activeProcessingCount.decrementAndGet();
+                updateUrlCountMetrics();
+            }
+        });
     }
 
-    // ОРИГИНАЛЬНЫЙ МЕТОД извлечения контактов в Entity
-    private void extractContactInfoToEntity(String content, UrlResultEntity result) {
+    // метод извлечения контактов в Entity
+    private void extractContactInfoToEntity(String content, UrlResultEntity result) throws Exception {
         if (content == null) return;
 
         Map<String, String> contacts = extractContactInfo(content);
@@ -511,53 +728,56 @@ public class UrlProcessingService {
     }
 
     // Вспомогательные методы
-    private Map<String, String> extractContactInfo(String content) {
-        Map<String, String> contacts = new HashMap<>();
-        if (content == null) return contacts;
+    private Map<String, String> extractContactInfo(String content) throws Exception {
+        return tracingService.traceOperation("extractContactInfo",
+                "content://" + (content != null ? content.hashCode() : "null"), () -> {
+                    Map<String, String> contacts = new HashMap<>();
+                    if (content == null) return contacts;
 
-        // Регулярные выражения для извлечения контактов
-        String emailRegex = "\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b";
-        String phoneRegex = "(\\+?\\d{1,3}[-.\\s]?)?\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}";
-        String addressRegex = "\\b(ул\\.|улица|проспект|пр\\.|бульвар|б-р|переулок|пер\\.)[^,.]{1,50},\\s*[^,.]{1,50}";
-        String hoursRegex = "(пн|вт|ср|чт|пт|сб|вс|понед|вторник|среда|четверг|пятница|суббота|воскресенье)[^.]*\\d{1,2}[:.]\\d{2}[^.]*\\d{1,2}[:.]\\d{2}";
+                    // Регулярные выражения для извлечения контактов
+                    String emailRegex = "\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b";
+                    String phoneRegex = "(\\+?\\d{1,3}[-.\\s]?)?\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}";
+                    String addressRegex = "\\b(ул\\.|улица|проспект|пр\\.|бульвар|б-р|переулок|пер\\.)[^,.]{1,50},\\s*[^,.]{1,50}";
+                    String hoursRegex = "(пн|вт|ср|чт|пт|сб|вс|понед|вторник|среда|четверг|пятница|суббота|воскресенье)[^.]*\\d{1,2}[:.]\\d{2}[^.]*\\d{1,2}[:.]\\d{2}";
 
-        // Извлечение email
-        Pattern emailPattern = Pattern.compile(emailRegex);
-        Matcher emailMatcher = emailPattern.matcher(content);
-        Set<String> emails = new HashSet<>();
-        while (emailMatcher.find()) {
-            emails.add(emailMatcher.group());
-        }
-        if (!emails.isEmpty()) {
-            contacts.put("email", String.join(", ", emails));
-        }
+                    // Извлечение email
+                    Pattern emailPattern = Pattern.compile(emailRegex);
+                    Matcher emailMatcher = emailPattern.matcher(content);
+                    Set<String> emails = new HashSet<>();
+                    while (emailMatcher.find()) {
+                        emails.add(emailMatcher.group());
+                    }
+                    if (!emails.isEmpty()) {
+                        contacts.put("email", String.join(", ", emails));
+                    }
 
-        // Извлечение телефонов
-        Pattern phonePattern = Pattern.compile(phoneRegex);
-        Matcher phoneMatcher = phonePattern.matcher(content);
-        Set<String> phones = new HashSet<>();
-        while (phoneMatcher.find()) {
-            phones.add(phoneMatcher.group());
-        }
-        if (!phones.isEmpty()) {
-            contacts.put("phone", String.join(", ", phones));
-        }
+                    // Извлечение телефонов
+                    Pattern phonePattern = Pattern.compile(phoneRegex);
+                    Matcher phoneMatcher = phonePattern.matcher(content);
+                    Set<String> phones = new HashSet<>();
+                    while (phoneMatcher.find()) {
+                        phones.add(phoneMatcher.group());
+                    }
+                    if (!phones.isEmpty()) {
+                        contacts.put("phone", String.join(", ", phones));
+                    }
 
-        // Извлечение адреса
-        Pattern addressPattern = Pattern.compile(addressRegex, Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
-        Matcher addressMatcher = addressPattern.matcher(content);
-        if (addressMatcher.find()) {
-            contacts.put("address", addressMatcher.group());
-        }
+                    // Извлечение адреса
+                    Pattern addressPattern = Pattern.compile(addressRegex, Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+                    Matcher addressMatcher = addressPattern.matcher(content);
+                    if (addressMatcher.find()) {
+                        contacts.put("address", addressMatcher.group());
+                    }
 
-        // Извлечение часов работы
-        Pattern hoursPattern = Pattern.compile(hoursRegex, Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
-        Matcher hoursMatcher = hoursPattern.matcher(content);
-        if (hoursMatcher.find()) {
-            contacts.put("workingHours", hoursMatcher.group());
-        }
+                    // Извлечение часов работы
+                    Pattern hoursPattern = Pattern.compile(hoursRegex, Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+                    Matcher hoursMatcher = hoursPattern.matcher(content);
+                    if (hoursMatcher.find()) {
+                        contacts.put("workingHours", hoursMatcher.group());
+                    }
 
-        return contacts;
+                    return contacts;
+                });
     }
 
     private String formatEmail(String email) {
@@ -610,25 +830,6 @@ public class UrlProcessingService {
         return errorResult;
     }
 
-    private void saveUrlResult(UrlEntity urlEntity, Integer statusCode, Long responseTime,
-                               Map<String, String> contactInfo, String errorMessage) {
-        try {
-            UrlResultEntity result = new UrlResultEntity(urlEntity, statusCode, responseTime);
-            if (contactInfo != null) {
-                result.setEmail(contactInfo.get("email"));
-                result.setPhone(contactInfo.get("phone"));
-                result.setAddress(contactInfo.get("address"));
-                result.setWorkingHours(contactInfo.get("workingHours"));
-            }
-            if (errorMessage != null) {
-                result.setErrorMessage(errorMessage);
-            }
-            urlResultRepository.save(result);
-        } catch (Exception e) {
-            logger.error("Ошибка сохранения результата для URL: {}", urlEntity.getUrl(), e);
-        }
-    }
-
     @Transactional
     public UrlEntity addUrl(String url, String name, String description) {
         if (urlRepository.existsByUrl(url)) {
@@ -678,6 +879,135 @@ public class UrlProcessingService {
         return stats;
     }
 
+    // метод для получения метрик с трейсингом
+    public Map<String, Object> getMetricsStatistics() throws Exception {
+        return tracingService.traceOperation("getMetricsStatistics",
+                "metrics://system", () -> {
+                    Map<String, Object> metrics = getStatistics();
+
+                    try {
+                        // Добавляем метрики Micrometer
+                        if (parsingTimer != null) {
+                            metrics.put("parsingTimerMeanSeconds", parsingTimer.mean(TimeUnit.SECONDS));
+                            metrics.put("parsingTimerMeanMillis", parsingTimer.mean(TimeUnit.MILLISECONDS));
+                            metrics.put("parsingTimerMaxSeconds", parsingTimer.max(TimeUnit.SECONDS));
+                            metrics.put("parsingTimerMaxMillis", parsingTimer.max(TimeUnit.MILLISECONDS));
+                            metrics.put("parsingTimerCount", parsingTimer.count());
+
+                            // Получаем процентили
+                            metrics.put("parsingTimerP50Millis", parsingTimer.percentile(0.5, TimeUnit.MILLISECONDS));
+                            metrics.put("parsingTimerP95Millis", parsingTimer.percentile(0.95, TimeUnit.MILLISECONDS));
+                            metrics.put("parsingTimerP99Millis", parsingTimer.percentile(0.99, TimeUnit.MILLISECONDS));
+                        } else {
+                            metrics.put("parsingTimerMeanSeconds", "N/A");
+                            metrics.put("parsingTimerMeanMillis", "N/A");
+                            metrics.put("parsingTimerMaxSeconds", "N/A");
+                            metrics.put("parsingTimerMaxMillis", "N/A");
+                            metrics.put("parsingTimerCount", "N/A");
+                        }
+
+                        if (successfulParsingCounter != null) {
+                            metrics.put("successfulParsingCount", successfulParsingCounter.count());
+                        } else {
+                            metrics.put("successfulParsingCount", 0);
+                        }
+
+                        if (failedParsingCounter != null) {
+                            metrics.put("failedParsingCount", failedParsingCounter.count());
+                        } else {
+                            metrics.put("failedParsingCount", 0);
+                        }
+
+                        if (databaseWriteCounter != null) {
+                            metrics.put("databaseWriteCount", databaseWriteCounter.count());
+                        } else {
+                            metrics.put("databaseWriteCount", 0);
+                        }
+
+                        if (activeProcessingCount != null) {
+                            metrics.put("activeProcessingCount", activeProcessingCount.get());
+                        } else {
+                            metrics.put("activeProcessingCount", 0);
+                        }
+
+                        if (responseTimeDistribution != null) {
+                            metrics.put("responseTimeMean", responseTimeDistribution.mean());
+                            metrics.put("responseTimeMax", responseTimeDistribution.max());
+                            metrics.put("responseTimeCount", responseTimeDistribution.count());
+                            metrics.put("responseTimeTotal", responseTimeDistribution.totalAmount());
+                        } else {
+                            metrics.put("responseTimeMean", "N/A");
+                            metrics.put("responseTimeMax", "N/A");
+                            metrics.put("responseTimeCount", "N/A");
+                            metrics.put("responseTimeTotal", "N/A");
+                        }
+
+                        if (totalUrlsInDatabase != null) {
+                            metrics.put("totalUrlsInDatabase", totalUrlsInDatabase.get());
+                        } else {
+                            metrics.put("totalUrlsInDatabase", 0);
+                        }
+
+                        // Добавляем системные метрики
+                        metrics.put("jvmMemoryUsedBytes", Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
+                        metrics.put("jvmMemoryMaxBytes", Runtime.getRuntime().maxMemory());
+                        metrics.put("jvmMemoryTotalBytes", Runtime.getRuntime().totalMemory());
+                        metrics.put("jvmMemoryFreeBytes", Runtime.getRuntime().freeMemory());
+                        metrics.put("availableProcessors", Runtime.getRuntime().availableProcessors());
+
+                        // Метрики пула потоков
+                        metrics.put("threadPoolCoreSize", threadPoolExecutor.getCorePoolSize());
+                        metrics.put("threadPoolMaxSize", threadPoolExecutor.getMaximumPoolSize());
+                        metrics.put("threadPoolLargestSize", threadPoolExecutor.getLargestPoolSize());
+                        metrics.put("threadPoolTaskCount", threadPoolExecutor.getTaskCount());
+                        metrics.put("threadPoolCompletedTaskCount", threadPoolExecutor.getCompletedTaskCount());
+
+                        // Метрики ForkJoinPool
+                        metrics.put("forkJoinPoolParallelism", forkJoinPool.getParallelism());
+                        metrics.put("forkJoinPoolActiveThreads", forkJoinPool.getActiveThreadCount());
+                        metrics.put("forkJoinPoolPoolSize", forkJoinPool.getPoolSize());
+                        metrics.put("forkJoinPoolQueuedTasks", forkJoinPool.getQueuedTaskCount());
+                        metrics.put("forkJoinPoolStealCount", forkJoinPool.getStealCount());
+
+                        // Расширенные метрики из репозиториев
+                        try {
+                            Double avgResponseTime = urlResultRepository.findAverageResponseTime();
+                            metrics.put("databaseAvgResponseTime", avgResponseTime != null ?
+                                    String.format("%.2f ms", avgResponseTime) : "N/A");
+
+                            long totalRequests = urlResultRepository.count();
+                            metrics.put("databaseTotalRequests", totalRequests);
+
+                            long successfulRequests = urlResultRepository.countByStatusCode(200);
+                            metrics.put("databaseSuccessfulRequests", successfulRequests);
+
+                            if (totalRequests > 0) {
+                                metrics.put("databaseSuccessRate",
+                                        String.format("%.1f%%", (successfulRequests * 100.0) / totalRequests));
+                            } else {
+                                metrics.put("databaseSuccessRate", "N/A");
+                            }
+
+                        } catch (Exception e) {
+                            logger.warn("Ошибка при получении метрик из базы данных", e);
+                        }
+
+                        // Добавляем статистику трейсинга
+                        Map<String, Object> tracingStats = tracingService.getTracingStatistics();
+                        metrics.putAll(tracingStats);
+
+                    } catch (Exception e) {
+                        logger.error("Ошибка при получении метрик статистики", e);
+                        metrics.put("metricsError", e.getMessage());
+                    }
+
+                    metrics.put("metricsTimestamp", new Date());
+                    metrics.put("application", "URL-Parser");
+
+                    return metrics;
+                });
+    }
+
     public ThreadPoolExecutor getThreadPoolExecutor() {
         return threadPoolExecutor;
     }
@@ -686,13 +1016,9 @@ public class UrlProcessingService {
         return forkJoinPool;
     }
 
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
-
     public void notifyResult(Long urlId, Map<String, Object> result) {
-        messagingTemplate.convertAndSend("/topic/url/" + urlId, result);
+        if (messagingTemplate != null) {
+            messagingTemplate.convertAndSend("/topic/url/" + urlId, result);
+        }
     }
-
-
 }
-

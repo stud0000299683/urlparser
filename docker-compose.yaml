@@ -23,12 +23,20 @@
 
   jaeger:
     image: jaegertracing/all-in-one:latest
+    container_name: jaeger
     ports:
-      - "4318:4318"
       - "16686:16686"
+      - "4318:4318"
     environment:
       - COLLECTOR_OTLP_ENABLED=true
+      # Явно указываем HTTP endpoint
+      - COLLECTOR_OTLP_HTTP_HOST_PORT=:4318
+    command:
+      # Явно включаем OTLP collector
+      - "--collector.otlp.enabled=true"
+      - "--collector.otlp.http.host-port=:4318"
     restart: unless-stopped
+
 
   redis-bank:
     image: redis:latest
@@ -42,17 +50,36 @@
       timeout: 5s
       retries: 3
 
-
   app:
     build: .
     container_name: urlparser-app
     ports:
       - "8079:8080"
     environment:
-      - JAVA_OPTS="-Xlog:gc*:file=/app/logs/gc.log:time,level,tags -Xmx512m -Xms256m"
+      - JAVA_OPTS=-Xlog:gc*:file=/app/logs/gc.log:time,level,tags -Xmx512m -Xms256m
       - SPRING_PROFILES_ACTIVE=docker
+      # ВАЖНО: Используем host.docker.internal вместо jaeger
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318/v1/traces
+      # - OTEL_EXPORTER_OTLP_ENDPOINT=http://host.docker.internal:4318
+      - OTEL_SERVICE_NAME=url-parser-service
+      - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+      - OTEL_TRACES_EXPORTER=otlp
+      - OTEL_METRICS_EXPORTER=none
+      - OTEL_PROPAGATORS=tracecontext,baggage
+      - OTEL_RESOURCE_ATTRIBUTES=service.name=url-parser-service,service.version=1.0.0,deployment.environment=docker
+      - OTEL_TRACES_SAMPLER=always_on
+      - OTEL_EXPORTER_OTLP_TIMEOUT=3000
+      # Fallback на консольный экспортер если Jaeger недоступен
+      - OTEL_EXPORTER_OTLP_INSECURE=true
+      # Spring конфигурация
+      - SPRING_DATASOURCE_URL=jdbc:h2:mem:testdb
+      - SPRING_H2_CONSOLE_ENABLED=true
+      - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,metrics,prometheus,tracing
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./logs:/app/logs:delegated
+      - ./application-docker.yml:/app/config/application.yml:ro
     depends_on:
       redis-bank:
         condition: service_healthy
@@ -65,4 +92,3 @@
 
 volumes:
   grafana_data:
-
